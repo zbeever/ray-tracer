@@ -13,5 +13,5 @@ public:
 		dir = dir / dir.length();
 	}
 
-	Point3 pointAt(float s) { return origin + dir * s; }
+	Point3 pointAt(const float s) const { return origin + dir * s; }
 };

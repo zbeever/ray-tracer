@@ -12,6 +12,11 @@ public:
 	{ }
 
 	float length() const { return std::sqrt(x*x + y*y + z*z); }
+	Vec3 direction() const
+	{
+		float k = 1.0f / this->length(); 
+		return Vec3(k*x, y*x, z*x);
+	}
 
 	Vec3 operator+(const Vec3& v) const { return Vec3(x + v.x, y + v.y, z + v.z); }
 	Vec3 operator-(const Vec3& v) const { return Vec3(x - v.x, y - v.y, z - v.z); }
@@ -39,6 +44,10 @@ public:
 		}
 	}
 
+	Vec3 cross(const Vec3& w) const
+	{
+		return Vec3(y*w.z - z*w.y, z*w.x - x*w.z, x*w.y - y*w.x);
+	}
 };
 
 float dot(const Vec3& v, const Vec3& w)

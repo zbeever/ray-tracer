@@ -14,7 +14,7 @@ public:
 		normal = normal / normal.length();
 	}
 
-	bool getIntersection(Ray r, PointRecord& hit_record) const
+	bool getIntersection(const Ray& r, PointRecord& hit_record) const
 	{
 		Vec3 v = pos - r.origin;
 		float cos_angle = dot(r.dir, normal);	

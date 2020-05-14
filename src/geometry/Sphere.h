@@ -12,7 +12,7 @@ public:
 	Sphere(Point3 origin_v, float radius_v): origin(origin_v), radius(radius_v)
 	{ }
 
-	bool getIntersection(Ray r, PointRecord& hit_record) const
+	bool getIntersection(const Ray& r, PointRecord& hit_record) const
 	{
 		Vec3 v = r.origin - origin;
 

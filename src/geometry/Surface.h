@@ -6,5 +6,5 @@
 class Surface
 {
 public:
-	bool getIntersection(Ray r, PointRecord& hit_record) const;
+	bool getIntersection(const Ray& r, PointRecord& hit_record) const;
 };
