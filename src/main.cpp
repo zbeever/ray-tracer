@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <sstream>
 
 #include "geometry/Vec3.h"
 #include "geometry/Ray.h"
@@ -12,13 +14,14 @@
 #include "geometry/Sphere.h"
 #include "geometry/Plane.h"
 #include "geometry/Triangle.h"
+#include "geometry/TriangleList.h"
 
 #include "scene/Camera.h"
 
 int main()
 {
-	int width = 400;
-	int height = 400;
+	int width = 200;
+	int height = 200;
 	float v_fov = 60.0f;
 
 	Camera cam = Camera(width, height, v_fov);
@@ -28,6 +31,8 @@ int main()
 	Triangle tri = Triangle( Point3(-1, 0, -1),
 				 Point3(1, 0, -1),
 				 Point3(0, 1, -1) );
+	TriangleList teapot = TriangleList("teapot.obj");
+	teapot.shift(Vec3(0, 0, -5));
 
 	std::ofstream myfile;
 	myfile.open("example.ppm");
@@ -39,7 +44,7 @@ int main()
 			Ray beam = cam.getRay(i, j);
 			PointRecord hit_record(Point3(0, 0, 0), Vec3(0, 0, 0));
 
-			if (tri.getIntersection(beam, hit_record))
+			if (teapot.getIntersection(beam, hit_record))
 				myfile << 255 << " " << 255 << " " << 255 << "\n";
 			else
 				myfile << 0 << " " << 0 << " " << 0 << "\n";

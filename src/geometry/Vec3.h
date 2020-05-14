@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 class Vec3
 {
 public:
@@ -11,6 +13,12 @@ public:
 	Vec3(const Vec3& v): x(v.x), y(v.y), z(v.z)
 	{ }
 
+	Vec3(const std::vector<float> v): x(v[0]), y(v[1]), z(v[2])
+	{ }
+
+	Vec3(): x(0), y(0), z(0)
+	{ }
+
 	float length() const { return std::sqrt(x*x + y*y + z*z); }
 	Vec3 direction() const
 	{
@@ -19,6 +27,16 @@ public:
 	}
 
 	Vec3 operator+(const Vec3& v) const { return Vec3(x + v.x, y + v.y, z + v.z); }
+	Vec3 operator+=(const Vec3& v)
+	{
+		this->x += v.x; this->y += v.y; this->z += v.z;
+		return *this;
+	}
+	Vec3 operator*=(const int k)
+	{
+		this->x *= k; this->y *= k; this->z *= k;
+		return *this;
+	}
 	Vec3 operator-(const Vec3& v) const { return Vec3(x - v.x, y - v.y, z - v.z); }
 	Vec3 operator-() const { return Vec3(-x, -y, -z); }
 	Vec3 operator*(float k) const { return Vec3(k*x, k*y, k*z); }

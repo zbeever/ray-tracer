@@ -38,6 +38,7 @@ public:
 
 		if (t >= 0.0f) {
 			hit_record.pos = r.pointAt(t);
+			hit_record.normal = n;
 			return true;
 		}
 
