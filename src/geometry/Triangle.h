@@ -1,14 +1,33 @@
 #pragma once
 
+#include <array>
 #include "Surface.h"
 
 class Triangle: public Surface
 {
 public:
-	Point3 vertex[3];
+	std::array<Point3, 3> vertex;
 
 	Triangle(const Point3& p0_v, const Point3& p1_v, const Point3& p2_v): vertex{p0_v, p1_v, p2_v}
 	{ }
+
+	void shift(const Vec3& offset)
+	{
+		for (auto& p: vertex) {
+			p += offset;
+		}
+
+		return;
+	}
+
+	void scale(const float k)
+	{
+		for (auto& p: vertex) {
+			p *= k;
+		}
+
+		return;
+	}
 
 	bool getIntersection(const Ray& r, PointRecord& hit_record) const
 	{

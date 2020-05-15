@@ -14,6 +14,18 @@ public:
 		normal = normal / normal.length();
 	}
 
+	void shift(const Vec3& offset)
+	{
+		pos += offset;
+
+		return;
+	}
+
+	void scale(const float k)
+	{
+		return;
+	}
+
 	bool getIntersection(const Ray& r, PointRecord& hit_record) const
 	{
 		Vec3 v = pos - r.origin;

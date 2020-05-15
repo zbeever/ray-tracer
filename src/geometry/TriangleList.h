@@ -47,6 +47,8 @@ public:
 		for (auto& p: vertex_array) {
 			p += offset;
 		}
+
+		return;
 	}
 
 	void scale(const float k)
@@ -54,6 +56,8 @@ public:
 		for (auto& p: vertex_array) {
 			p *= k;
 		}
+
+		return;
 	}
 
 	bool getIntersection(const Ray& r, PointRecord& hit_record) const

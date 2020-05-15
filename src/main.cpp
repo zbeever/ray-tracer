@@ -44,7 +44,7 @@ int main()
 			Ray beam = cam.getRay(i, j);
 			PointRecord hit_record(Point3(0, 0, 0), Vec3(0, 0, 0));
 
-			if (teapot.getIntersection(beam, hit_record))
+			if (tri.getIntersection(beam, hit_record))
 				myfile << 255 << " " << 255 << " " << 255 << "\n";
 			else
 				myfile << 0 << " " << 0 << " " << 0 << "\n";

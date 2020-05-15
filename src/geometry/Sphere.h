@@ -12,6 +12,20 @@ public:
 	Sphere(Point3 origin_v, float radius_v): origin(origin_v), radius(radius_v)
 	{ }
 
+	void shift(const Vec3& offset)
+	{
+		origin += offset;
+
+		return;
+	}
+
+	void scale(const float k)
+	{
+		radius *= k;
+
+		return;
+	}
+
 	bool getIntersection(const Ray& r, PointRecord& hit_record) const
 	{
 		Vec3 v = r.origin - origin;
