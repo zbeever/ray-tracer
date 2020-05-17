@@ -1,14 +1,19 @@
 #pragma once
 
-#include "PointRecord.h"
 #include "Ray.h"
+
+struct HitRecord
+{
+	float s;
+	Point3 pos;
+	Vec3 normal;
+};
 
 class Surface
 {
 public:
-	virtual bool getIntersection(const Ray& r, PointRecord& hit_record) const = 0;
+	virtual bool hit(const Ray& r, HitRecord& hit_record, const float s_min, const float s_max) const = 0;
 
 	virtual void shift(const Vec3& offset) = 0;
-	virtual void scale(const float k) = 0;
-	// virtual void rotate(const Point3& p, const Vec3& axis, const float deg) = 0;
+	virtual void scale(const float k, const Point3& o) = 0;
 };

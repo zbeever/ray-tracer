@@ -1,14 +1,19 @@
 #pragma once
 
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <array>
 #include "Surface.h"
 
-class Plane: public Surface
+class Mesh: public Surface
 {
 public:
-	Point3 pos;
-	Vec3 normal;
+	std::vector<Point3> vertex_array;
+	std::vector<int> index_array;
 
-	Plane(Point3 pos_v, Vec3 normal_v);
+	Mesh(const std::string& model_name);
 
 	void shift(const Vec3& offset);
 	void scale(const float k, const Point3& o);
