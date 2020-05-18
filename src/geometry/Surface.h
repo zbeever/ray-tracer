@@ -1,12 +1,17 @@
 #pragma once
 
+#include <memory>
 #include "Ray.h"
+#include "../materials/Material.h"
 
 struct HitRecord
 {
 	float s;
+
 	Point3 pos;
 	Vec3 normal;
+
+	std::shared_ptr<Material> mat;
 };
 
 class Surface

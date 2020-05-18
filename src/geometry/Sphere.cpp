@@ -40,6 +40,7 @@ bool Sphere::hit(const Ray& r, HitRecord& hit_record, const float s_min, const f
 
 			hit_record.pos = pos;
 			hit_record.normal = normal;
+			hit_record.s = s;
 			
 			return true;
 		}
@@ -53,6 +54,7 @@ bool Sphere::hit(const Ray& r, HitRecord& hit_record, const float s_min, const f
 
 			hit_record.pos = pos;
 			hit_record.normal = normal;
+			hit_record.s = s;
 			
 			return true;
 		}

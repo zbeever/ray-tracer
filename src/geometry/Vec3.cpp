@@ -34,7 +34,7 @@ Vec3 Vec3::operator+=(const Vec3& v)
 	return *this;
 }
 
-Vec3 Vec3::operator*=(const int k)
+Vec3 Vec3::operator*=(const float k)
 {
 	this->x *= k; this->y *= k; this->z *= k;
 	return *this;
