@@ -1,14 +1,11 @@
-#include "../light/Radiance3.h"
-
 #pragma once
 
-#pragma once
+#include "../geometry/Vec3.h"
+#include "../engine/Record.h"
+#include "../geometry/Ray.h"
 
 class Material
 {
 public:
-	Radiance3 rad;
-
-	Material(const Radiance3& rad_v): rad(rad_v)
-	{ }
+	virtual bool scatter(const Ray& r_in, const Record& rec, Color& attenuation, Ray& scattered, std::mt19937& rgen) const = 0;
 };

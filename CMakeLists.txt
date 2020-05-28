@@ -1,17 +1,21 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 project(raytracer C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS -pthread)
+SET(CMAKE_CXX_STANDARD 17)
 
 file(GLOB raytracer_SRC
     "src/*.h"
-    "src/*.cpp"
+    "src/*.cc"
     "src/geometry/*.h"
-    "src/geometry/*.cpp"
+    "src/geometry/*.cc"
+    "src/materials/*.h"
+    "src/materials/*.cc"
     "src/engine/*.h"
-    "src/engine/*.cpp"
+    "src/engine/*.cc"
 )
 
+
+find_package(OpenMP REQUIRED)
 add_executable(raytracer ${raytracer_SRC})
+target_link_libraries(raytracer PRIVATE OpenMP::OpenMP_CXX)
