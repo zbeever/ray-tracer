@@ -24,31 +24,21 @@
 Color ray_color(const Ray& r, const Scene& world, const int depth, std::mt19937& rgen)
 {
 	Record rec;
-	if (world.hit(r, eps, infinity, rec))
-	{
+	if (world.hit(r, eps, infinity, rec)) {
 		Ray scattered;
 		Color attenuation;
-		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered, rgen))
-		{
+		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered, rgen)) {
 			double r = 0.75;
-			if (depth > 5)
-			{
-				if (random_double(rgen) < 1 - r)
-				{
+			if (depth > 5) {
+				if (random_double(rgen) < 1 - r) {
 					return Color(0, 0, 0);
-				}
-				else
-				{
+				} else {
 					return attenuation * ray_color(scattered, world, depth + 1, rgen) / r;
 				}
-			}
-			else
-			{
+			} else {
 				return attenuation * ray_color(scattered, world, depth + 1, rgen);
 			}
-		}
-		else
-		{
+		} else {
 			return Color(0, 0, 0);
 		}
 	}
@@ -92,15 +82,12 @@ int main()
 #pragma omp parallel 
 {
 #pragma omp for schedule(dynamic)
-	for (int j = image_height - 1; j >= 0; --j)
-	{
+	for (int j = image_height - 1; j >= 0; --j) {
 		static thread_local std::mt19937 rgen((omp_get_thread_num() + 1));
 		fprintf(stderr, "\rRendering %5.2f%%", 100.*(image_height - 1 - j) / (image_height - 1)); 
-		for (int i = 0; i < image_width; ++i)
-		{
+		for (int i = 0; i < image_width; ++i) {
 			Color pixel_color(0, 0, 0);
-			for (int s = 0; s < spp; ++s)
-			{
+			for (int s = 0; s < spp; ++s) {
 				auto u = double(i + random_double(rgen)) / (image_width - 1);
 				auto v = double(j + random_double(rgen)) / (image_height - 1);
 				Ray r = cam.get_ray(u, v, rgen);
@@ -113,8 +100,7 @@ int main()
 	end = std::chrono::system_clock::now(); 
 	std::chrono::duration<double> elapsed_seconds = end - start; 
 
-	for (auto color : pixel_array)
-	{
+	for (auto color : pixel_array) {
 		file << color.r() << " " << color.g() << " " << color.b() << std::endl;
 	}
 

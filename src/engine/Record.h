@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "../geometry/Ray.h"
 
 class Material;
 

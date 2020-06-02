@@ -259,4 +259,26 @@ where $A$ is a normalization constant. We see that the distribution must be
 	f_r(\mathbf{x}, \hat{\omega}_i, \hat{\omega}_o, \lambda, t) = \frac{\delta(\mathbf{n} - (\hat{\omega}_i + \hat{\omega_o})/2)}{|\hat{\omega}_i\cdot\mathbf{n}|}
 \]
 and hence $|\hat{\omega}_i\cdot\mathbf{n}|$ does not appear in implementations of specular reflection (or indeed any delta function distribution).
+
+\section*{Russian Roulette}
+
+Suppose we have an estimator $F$ that we replace with
+an estimator $F'$
+\[
+	F' = \begin{cases}
+		\frac{F}{p} & u \leq p \\
+		0 & u > p
+	\end{cases}
+\]
+where $u$ is a uniform random value between $0$ and $1$ and $p$ is some valid probability. In  words, $F'$ returns $F/p$ with chance $p$ and $0$ with chance $(1 - p)$. This new estimator has the same expected value as $F$, because
+\[
+	\mathbb{E}[F'] = p\cdot\frac{\mathbb{E}[F]}{p} + (1 - p)\cdot0 = \mathbb{E}[F]
+\]
+
+If we apply this to the indirect lighting integrand in our path tracer, we see that it allows the termination of a loop that would otherwise need to continue until hitting a light source---a process that could easily have no end. This has the advantage of allowing us to run our program in a finite time without incurring bias.
+
+\section*{Reflection and Refraction}
+
+
+
 \end{document}
