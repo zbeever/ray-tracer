@@ -279,6 +279,82 @@ If we apply this to the indirect lighting integrand in our path tracer, we see t
 
 \section*{Reflection and Refraction}
 
+By simple geometry, we recognize a reflection about the surface normal must obey
+\[
+	\mathbf{n} = \frac{\hat{\omega}_o - \hat{\omega}_i}{2},
+\]
+where $\hat{\omega}_o$ is the unit vector in the direction of the outward going ray and $\hat{\omega}_i$ is the unit vector in the direction of the inward coming ray. We can easily solve this for the outgoing ray,
+\[
+	\hat{\omega}_o = 2\mathbf{n} + \hat{\omega}_i.
+\]
+Refraction is slightly more complicated. One may arrive at the famous Snell's law by minimizing the time it takes a light ray to traverse the distance between two points located in two homogenous mediums. It reads
+\[
+	n_1\sin\theta_1 = n_2\sin\theta_2
+\]
+where $n_i = c/v_i$ is the refractive index of each medium and $\theta_i$ is the angle the light ray makes with respect to the closest surface normal. When $\tfrac{n_1}{n_2}\sin\theta_1 > 1$, the above has no solutions and the ray must be reflected.
 
+To find $\hat{\omega}_o$ in the case of refraction, it's easiest to split both direction vectors into components parallel and perpendicular to the surface normal. Since we are dealing with unit vectors, $\sin\theta_1 = \|\hat{\omega}_{i,\perp}\|$ and $\sin\theta_2 = \|\hat{\omega}_{o,\perp}\|$. With both direction vectors lying in the same plane, we can combine this with Snell's law to find
+\[
+	\hat{\omega}_{o,\perp} = \frac{n_1}{n_2}\hat{\omega}_{i,\perp} = \frac{n_1}{n_2}\big(\hat{\omega}_i - (\hat{\omega}_i\cdot\mathbf{n})\mathbf{n}\big).
+\]
+We can get the parallel component of $\hat{\omega}_o$ through the Pythagorean theorem,
+\[
+	\hat{\omega}_{o,\parallel} = -\sqrt{1 - \|\hat{\omega}_{o,\perp}\|}\mathbf{n}
+\]
+Both of these short derivations assume an outward facing surface normal. To deal with inward-pointing surface normals, we can either negate $\mathbf{n}$ in the intersection record or negate the instances of $\mathbf{n}$ in the above equations.
 
+\section*{Fresnel Equations}
+
+When an electromagnetic wave traverses the boundary between two dielectric mediums, a portion of the light is reflected while the rest is transmitted. Ray optics is insufficient to find the necessary proportions, so we approach this problem using the full classical theory. We only need the (reasonable) assumption that the electric and magnetic field components lying on the boundary must be the same in both mediums.
+
+Consider a wave traveling downward at an angle with respect to the $y$-axis. Let it be $S$ polarized, i.e. the electric field is orthogonal to the $x$-$y$ plane and the magnetic points downward at an angle with respect to both the $x$ and $y$ axes. Working only with the field magnitudes, the assumed continuity imposes the conditions
+\begin{align*}
+	E_t &= E_i + E_r \\
+	-B_t\cos\theta_t &= -B_i\cos\theta_i + B_r\cos\theta_r
+\end{align*}
+In reality we should be matching $H$s instead of $B$s, but we make the approximation that the materials are non-magnetic. In the above, $\theta_i$ represents the angle the incident ray makes with the normal, $\theta_r$ is the same for the reflected ray, and $\theta_t$ marks the angle the transmitted ray makes with the normal. Obviously, $\theta_i = \theta_r$.
+
+Since we're only dealing with amplitudes, we can make the substitutions $B = E/v = nE/c$ into the second equation and eliminate $E_t$ to get
+\[
+	n_2(E_i + E_r)\cos\theta_t = n_1(E_i - E_r)\cos\theta_i
+\]
+Collecting $E_i$s and $E_r$s gives
+\[
+	E_i(n_1\cos\theta_i - n_2\cos\theta_t) = E_r(n_2\cos\theta_t + n_1\cos\theta_i)
+\]
+yielding a reflection coefficient of
+\[
+	R_S = \frac{E_r^2}{E_i^2} = \Big(\frac{n_1\cos\theta_i - n_2\cos\theta_t}{n_1\cos\theta_i + n_2\cos\theta_t}\Big)^2
+\]
+where we have squared the electric fields because we are concerned with the transmission of power, which is proportional to $E^2$. This gives a transmission coefficient of $T_S = 1 - R_S$.
+
+Going through the same process with $P$ polarized light (where the magnetic field is orthogonal to the plane of reflection) yields
+\[
+	R_P = \Big(\frac{n_1\cos\theta_t - n_2\cos\theta_i}{n_1\cos\theta_t + n_2\cos\theta_i}\Big)^2
+\]
+where, again, $T_P = 1 - R_P$. Since we deal with unpolarized light in almost all instances within computer graphics, we can take
+\[
+	R_{\text{eff}} = \frac{R_S + R_P}{2}, \qquad T_{\text{eff}} = 1 - R_{\text{eff}}
+\]
+As a final form for the effective reflection coefficient, we can express $\theta_t$ in terms of $\theta_i$ by using Snell's law. This results in an ugly---and computationally inefficient---equation.
+
+Christophe Schlick suggested the approximation
+\[
+	R_{\text{eff}}(\theta) = R_0 + (1 - R_0)(1 - \cos\theta_i)^5
+\]
+where
+\[
+	R_0 = \Big(\frac{n_1 - n_2}{n_1 + n_2}\Big)^2
+\]
+and this is the approximaton we use in the accompanying ray tracer.
+
+\section*{Gamma Correction and Desaturation}
+
+In the conversion from radiance to RGB, gamma correction must be applied. In short, modern displays use phosphor, which acts a nonlinear light source. As a standard, manufacturers make sure that the phosphor is implemented in such a way that the output-input relationship is simply
+\[
+	L_o = L_i^{2.2}
+\]
+From this, we see that we should scale our radiance values by the $2.2$ root before saving. This is often approximated by $\sqrt{L}$, but we use the exact value in the accompanying ray tracer.
+
+Desaturation fixes a byproduct of digital image formats: since pixels can only take on a finite set of values, an extremely bright light source will change hues in the image (once the largest value hits $255$, the increase among all three values is no longer proportional). We can workaround this by interpolating between the computed radiance and pure white using the peak of the computed spectra as the interpolating variable.
 \end{document}
