@@ -10,10 +10,11 @@
 #include "engine/Record.h"
 #include "engine/Scene.h"
 
-#include "geometry/Vec3.h"
+#include "geometry/MovingSphere.h"
 #include "geometry/Ray.h"
 #include "geometry/Sphere.h"
 #include "geometry/Surface.h"
+#include "geometry/Vec3.h"
 
 #include "materials/Dielectric.h"
 #include "materials/Material.h"
@@ -51,7 +52,7 @@ Color ray_color(const Ray& r, const Scene& world, const int depth, std::mt19937&
 int main()
 {
 	const auto aspect_ratio = 16.0 / 9.0; 									// Width / height
-	const int image_width = 1024;
+	const int image_width = 800;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
 	const int spp = 75;
 

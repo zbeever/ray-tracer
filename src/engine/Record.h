@@ -11,6 +11,8 @@ struct Record
 	Vec3 normal;
 	std::shared_ptr<Material> mat_ptr;
 	double t;
+	double u;
+	double v;
 	bool front_face;
 
 	inline void set_face_normal(const Ray& r, const Vec3& outward_normal)

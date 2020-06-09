@@ -23,6 +23,12 @@ inline double random_double(std::mt19937& rgen)
 
 inline double random_double(double min, double max, std::mt19937& rgen)
 {
-    return min + (max - min) * random_double(rgen);
+	std::uniform_real_distribution<double> dist(min, max);
+	return dist(rgen);
 }
 
+inline int random_int(int min, int max, std::mt19937& rgen)
+{
+	std::uniform_int_distribution<int> dist(min, max);
+	return dist(rgen);
+}
