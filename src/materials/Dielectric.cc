@@ -1,6 +1,6 @@
 #include "Dielectric.h"
 
-Dielectric::Dielectric(const Color& albedo_, const double ri_): albedo(albedo_), ri(ri_)
+Dielectric::Dielectric(std::shared_ptr<Texture> albedo_, const double ri_): albedo(albedo_), ri(ri_)
 { }
 
 double schlick(const double cosine, const double ri)
@@ -36,6 +36,6 @@ bool Dielectric::scatter(const Ray& r_in, const Record& rec, Color& attenuation,
 
 	Vec3 refracted = refract(unit_direction, rec.normal, etai_over_etat);
 	scattered = Ray(rec.p, refracted, r_in.time());
-	attenuation = albedo;
+	attenuation = albedo->value(rec.u, rec.v, rec.p);
 	return true;
 }

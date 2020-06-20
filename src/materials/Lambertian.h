@@ -1,13 +1,15 @@
 #pragma once
 
 #include "Material.h"
+#include "../textures/Texture.h"
 #include "../engine/Utils.h"
+#include <memory>
 
 class Lambertian: public Material
 {
 public:
-	Color albedo;
+	std::shared_ptr<Texture> albedo;
 
-	Lambertian(const Color& albedo_);
+	Lambertian(std::shared_ptr<Texture> albedo_);
 	virtual bool scatter(const Ray& r_in, const Record& rec, Color& attenuation, Ray& scattered, std::mt19937& rgen) const;
 };

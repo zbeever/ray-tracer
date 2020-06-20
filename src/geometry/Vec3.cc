@@ -64,6 +64,22 @@ Vec3 random_in_unit_sphere(std::mt19937& rgen)
 	return Vec3(r * cos(phi), r * sin(phi), z);
 }
 
+Vec3 random_cos_weighted_hemisphere(const Vec3& normal, std::mt19937& rgen)
+{
+	auto u = random_double(rgen);
+	auto scaled_v = random_double(0, 2 * pi, rgen);
+	
+	Vec3 initial(sqrt(u) * cos(scaled_v), sqrt(u) * sin(scaled_v), sqrt(1 - u));
+
+	auto phi = atan2(normal.y(), normal.x());
+	auto theta = acos(normal.z() / normal.length());
+
+	Vec3 rotate_about_y(cos(theta) * initial.x() + sin(theta) * initial.z(), initial.y(), -sin(theta) * initial.x() + cos(theta) * initial.z());
+	Vec3 rotate_about_z(cos(phi) * rotate_about_y.x() - sin(phi) * rotate_about_y.y(), sin(phi) * rotate_about_y.x() + cos(phi) * rotate_about_y.y(), rotate_about_y.z());
+
+	return rotate_about_z;
+}
+
 Vec3 random_unit_vector(std::mt19937& rgen)
 {
 	auto a = random_double(0, 2 * pi, rgen);

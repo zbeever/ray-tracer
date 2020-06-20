@@ -6,10 +6,10 @@
 class Dielectric: public Material
 {
 public:
-	Color albedo;
+	std::shared_ptr<Texture> albedo;
 	double ri;
 
-	Dielectric(const Color& albedo_, const double ri_);
+	Dielectric(std::shared_ptr<Texture> albedo_, const double ri_);
 	virtual bool scatter(const Ray& r_in, const Record& rec, Color& attenuation, Ray& scattered, std::mt19937& rgen) const;
 };
 

@@ -16,3 +16,4 @@ public:
 	virtual bool bounding_box(const double t0, const double t1, AABB& output_box) const;
 };
 
+void get_sphere_uv(const Vec3& p, double& u, double& v);
