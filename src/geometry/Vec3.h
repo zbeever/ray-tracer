@@ -90,8 +90,7 @@ inline Vec3 normalize(Vec3 v)
 
 Vec3 random_in_unit_sphere(std::mt19937& rgen);
 Vec3 random_unit_vector(std::mt19937& rgen);
-Vec3 random_cos_weighted_hemisphere(const Vec3& normal, std::mt19937& rgen);
-Vec3 random_in_hemisphere(const Vec3& normal, std::mt19937& rgen);
+Vec3 random_cos_weighted_hemisphere(std::mt19937& rgen);
 Vec3 random_in_unit_disc(std::mt19937& rgen);
 Vec3 reflect(const Vec3& v, const Vec3& n);
 Vec3 refract(const Vec3& uv, const Vec3& n, const double etai_over_etat);

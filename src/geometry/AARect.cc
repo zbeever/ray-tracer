@@ -25,7 +25,7 @@ AARect::AARect(char _axis, double _b0, double _b1, double _c0, double _c1, doubl
 	}
 }
 
-bool AARect::hit(const Ray& r, double t0, double t1, Record& rec) const
+bool AARect::hit(const Ray& r, double t0, double t1, Record& rec, std::mt19937& rgen) const
 {
 	// Check if the rectangle is in front of the ray
 	auto t = (k - r.origin()[a_ind]) / r.direction()[a_ind];
@@ -72,4 +72,23 @@ bool AARect::bounding_box(double t0, double t1, AABB& output_box) const
 
 	output_box = AABB(min_point, max_point);
 	return true;
+}
+
+double AARect::pdf_value(const Point3& origin, const Vec3& v, std::mt19937& rgen) const
+{
+	Record rec;
+	if (!this->hit(Ray(origin, v), 1e-3, infinity, rec, rgen))
+		return 0;
+
+	auto area = (b1 - b0) * (c1 - c0);
+	auto distance_squared = rec.t * rec.t * v.length_squared();
+	auto cosine = std::abs(dot(v, rec.normal) / v.length());
+
+	return distance_squared / (cosine * area);
+}
+
+Vec3 AARect::random(const Vec3& origin, std::mt19937& rgen) const
+{
+	auto random_point = Point3(random_double(b0, b1, rgen), k, random_double(c0, c1, rgen));
+	return random_point - origin;
 }

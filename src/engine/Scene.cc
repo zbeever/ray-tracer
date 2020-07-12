@@ -19,7 +19,7 @@ void Scene::add(std::shared_ptr<Surface> object)
 	objects.push_back(object);
 }
 
-bool Scene::hit(const Ray& ray, const double t_min, const double t_max, Record& rec) const
+bool Scene::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
 	Record temp;
 
@@ -28,7 +28,7 @@ bool Scene::hit(const Ray& ray, const double t_min, const double t_max, Record& 
 
 	for (const auto& object : objects)
 	{
-		if (object->hit(ray, t_min, closest_so_far, temp))
+		if (object->hit(ray, t_min, closest_so_far, temp, rgen))
 		{
 			hit_anything = true;
 			closest_so_far = temp.t;

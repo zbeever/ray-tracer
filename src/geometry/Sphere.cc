@@ -7,7 +7,7 @@ Sphere::Sphere()
 Sphere::Sphere(const Point3& center_, const double radius_, std::shared_ptr<Material> mat_ptr_): center(center_), radius(radius_), mat_ptr(mat_ptr_)
 { }
 
-bool Sphere::hit(const Ray& ray, const double t_min, const double t_max, Record& rec) const
+bool Sphere::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
 	Vec3 oc = ray.origin() - center;
 

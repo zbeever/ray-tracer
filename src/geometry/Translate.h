@@ -10,6 +10,6 @@ public:
 
 	Translate(std::shared_ptr<Surface> p, const Vec3& displacement);
 
-	virtual bool hit(const Ray& r, double t_min, double t_max, Record& rec) const;
+	virtual bool hit(const Ray& r, double t_min, double t_max, Record& rec, std::mt19937& rgen) const;
 	virtual bool bounding_box(double t0, double t1, AABB& output_box) const;
 };

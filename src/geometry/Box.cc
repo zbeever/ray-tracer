@@ -19,9 +19,9 @@ Box::Box(const Point3& p0, const Point3& p1, std::shared_ptr<Material> ptr)
 	sides.add(std::make_shared<FlipNormals>(std::make_shared<AARect>('x', p0.y(), p1.y(), p0.z(), p1.z(), p0.x(), ptr)));
 }
 
-bool Box::hit(const Ray& r, double t0, double t1, Record& rec) const
+bool Box::hit(const Ray& r, double t0, double t1, Record& rec, std::mt19937& rgen) const
 {
-	return sides.hit(r, t0, t1, rec);	
+	return sides.hit(r, t0, t1, rec, rgen);	
 }
 
 bool Box::bounding_box(double t0, double t1, AABB& output_box) const

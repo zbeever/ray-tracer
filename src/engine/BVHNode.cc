@@ -49,15 +49,15 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Surface>>& objects, size_t start, s
 	box = surrounding_box(box_left, box_right);
 }
 
-bool BVHNode::hit(const Ray& ray, const double t_min, const double t_max, Record& rec) const
+bool BVHNode::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
-	if (!box.hit(ray, t_min, t_max, rec))
+	if (!box.hit(ray, t_min, t_max, rec, rgen))
 	{
 		return false;
 	}
 
-	bool hit_left = left->hit(ray, t_min, t_max, rec);
-	bool hit_right = right->hit(ray, t_min, hit_left ? rec.t : t_max, rec);
+	bool hit_left = left->hit(ray, t_min, t_max, rec, rgen);
+	bool hit_right = right->hit(ray, t_min, hit_left ? rec.t : t_max, rec, rgen);
 
 	return hit_left || hit_right;
 }

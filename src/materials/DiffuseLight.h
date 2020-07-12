@@ -15,8 +15,12 @@ public:
 		return false;
 	}
 
-	virtual Color emitted(double u, double v, const Point3& p) const
+	virtual Color emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
 	{
-		return emit->value(u, v, p);
+		if (rec.front_face)
+			return emit->value(u, v, p);
+		else
+			return Color(0.0, 0.0, 0.0);
+		return Color(0.0, 0.0, 0.0);
 	}
 };

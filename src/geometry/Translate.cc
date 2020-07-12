@@ -3,10 +3,10 @@
 Translate::Translate(std::shared_ptr<Surface> p, const Vec3& displacement): ptr(p), offset(displacement)
 { }
 
-bool Translate::hit(const Ray& r, double t_min, double t_max, Record& rec) const
+bool Translate::hit(const Ray& r, double t_min, double t_max, Record& rec, std::mt19937& rgen) const
 {
 	Ray moved_r(r.origin() - offset, r.direction(), r.time());
-	if (!ptr->hit(moved_r, t_min, t_max, rec))
+	if (!ptr->hit(moved_r, t_min, t_max, rec, rgen))
 	{
 		return false;
 	}

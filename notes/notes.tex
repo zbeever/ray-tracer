@@ -357,4 +357,35 @@ In the conversion from radiance to RGB, gamma correction must be applied. In sho
 From this, we see that we should scale our radiance values by the $2.2$ root before saving. This is often approximated by $\sqrt{L}$, but we use the exact value in the accompanying ray tracer.
 
 Desaturation fixes a byproduct of digital image formats: since pixels can only take on a finite set of values, an extremely bright light source will change hues in the image (once the largest value hits $255$, the increase among all three values is no longer proportional). We can workaround this by interpolating between the computed radiance and pure white using the peak of the computed spectra as the interpolating variable.
+
+\section*{Shadow Ray PDFs}
+
+Consider a light that we wish to uniformly sample from a vantage point $\mathbf{p}$. If we pick a point $\mathbf{q}$ on the surface of the light, the ray connecting them will have the direction
+\[
+	\hat{\mathbf{r}} = \frac{\mathbf{q} - \mathbf{p}}{\|\mathbf{q} - \mathbf{p}\|}.
+\] 
+Given a PDF describing the likelihood of choosing a point $\mathbf{q}$, $p_q(\mathbf{q})$, what is the PDF of choosing the corresponding direction $\hat{\mathbf{r}}$?
+
+Because directions live on the unit sphere, this is equivalent to the problem of finding the solid angle subtended by an object as viewed from point $\mathbf{p}$. It is easiest to consider the infinitesimal variant of this problem: given a small patch of area $\mathrm{d}\mathbf{S}$, what is the solid angle $\mathrm{d}\Omega$ covered? This is simply the projection of $\mathrm{d}\mathbf{S}$ onto the sphere centered at $\mathbf{p}$ whose surface touches $\mathrm{d}\mathbf{S}$---all normalized by the sphere's surface area. Denoting the surface normal of the light by $\hat{\mathbf{n}}$ and the recognizing that $\hat{\mathbf{r}}$ describes the surface normal of the sphere, this projection becomes
+\[
+	\frac{\mathrm{d}\mathbf{S} \cdot \hat{\mathbf{r}}}{4\pi r^2} = \frac{\mathrm{d}S\,\hat{\mathbf{n}}\cdot\hat{\mathbf{r}}}{4\pi r^2}
+\]
+To convert this to units of solid angle, we remember that the above must integrate to $4\pi$ when the light completely surrounds $\mathbf{p}$, i.e. when $\hat{\mathbf{n}}$ is equal to $\hat{\mathbf{r}}$. In this case, the integral becomes
+\[
+	\int_0^{2\pi}\int_0^{\pi}\frac{r^2\sin\theta\,\mathrm{d}\theta\mathrm{d}\phi}{4\pi r^2} = \int_0^{\pi}\frac{\sin\theta\,\mathrm{d}\theta}{2} = 1
+\]
+which implies we must multiply our projection by $4\pi$. The final relationship is
+\[
+	\mathrm{d}\Omega = \frac{\mathrm{d}S}{r^2}\hat{\mathbf{n}}\cdot\hat{\mathbf{r}}
+\]
+Now, the probability of sampling a small area $\mathrm{d}\mathbf{S}$ of the light must be the same as sampling a small solid angle $\mathrm{d}\Omega$ of the unit sphere, and so we may write
+\[
+	p_{r}(\mathbf{r})\,\mathrm{d}\Omega = p_{r}(\mathbf{r})\frac{\mathrm{d}S}{r^2}\hat{\mathbf{n}}\cdot\hat{\mathbf{r}} = p_q(\mathbf{q})\,\mathrm{d}S.
+\]
+Solving for $p_{r}(\mathbf{r})$ gives
+\[
+	p_{r}(\mathbf{r}) = p_q(\mathbf{q})\frac{r^2}{\hat{\mathbf{n}}\cdot\hat{\mathbf{r}}}.
+\]
+Since $\mathbf{r}$ is really a function of $\mathbf{q}$, we are done. We simply need to sample $\mathbf{q}$ via any number of methods and calculate $\mathbf{r}$ as a function of $\mathbf{q}$. The PDF $p_r(\mathbf{r})$ can then be used in multiple importance sampling schemes.
+
 \end{document}

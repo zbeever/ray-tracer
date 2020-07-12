@@ -17,7 +17,7 @@ Point3 AABB::max() const
 }
 
 
-bool AABB::hit(const Ray& ray, const double t_min, const double t_max, Record& rec) const
+bool AABB::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
 	for (int a = 0; a < 3; ++a)
 	{

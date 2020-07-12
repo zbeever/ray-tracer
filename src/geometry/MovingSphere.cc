@@ -11,7 +11,7 @@ Point3 MovingSphere::center(const double time) const
 	return center0 + ((time - time0) / (time1 - time0)) * (center1 - center0);
 }
 
-bool MovingSphere::hit(const Ray& ray, const double t_min, const double t_max, Record& rec) const
+bool MovingSphere::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
 	Vec3 oc = ray.origin() - center(ray.time());
 

@@ -3,9 +3,9 @@
 FlipNormals::FlipNormals(std::shared_ptr<Surface> p): ptr(p)
 { }
 
-bool FlipNormals::hit(const Ray& r, double t_min, double t_max, Record& rec) const
+bool FlipNormals::hit(const Ray& r, double t_min, double t_max, Record& rec, std::mt19937& rgen) const
 {
-	if (!ptr->hit(r, t_min, t_max, rec))
+	if (!ptr->hit(r, t_min, t_max, rec, rgen))
 	{
 		return false;
 	}

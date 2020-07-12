@@ -13,7 +13,7 @@ public:
 	Point3 min() const;
 	Point3 max() const;
 
-	bool hit(const Ray& ray, const double t_min, const double t_max, Record& rec) const;	
+	bool hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const;	
 };
 
 AABB surrounding_box(AABB box0, AABB box1);

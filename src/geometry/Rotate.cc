@@ -1,80 +1,54 @@
 #include "Rotate.h"
 
-Rotate::Rotate(std::shared_ptr<Surface> p, char _axis, double angle)
-{
-	if (_axis == 'x')
-	{
-		a_ind = 0;
-		b_ind = 1;
-		c_ind = 2;
-	}
-	else if (_axis == 'y')
-	{
-		a_ind = 1;
-		b_ind = 0;
-		c_ind = 2;
-	}
-	else if (_axis == 'z')
-	{
-		a_ind = 2;
-		b_ind = 0;
-		c_ind = 1;
-	}
-
+Rotate::Rotate(std::shared_ptr<Surface> p, double angle): ptr(p) {
 	auto radians = degrees_to_radians(angle);
 	sin_theta = sin(radians);
 	cos_theta = cos(radians);
-	has_box = ptr->bounding_box(0, 1, bbox);
+	hasbox = ptr->bounding_box(0, 1, bbox);
 
-	Point3 min(infinity, infinity, infinity);
+	Point3 min( infinity,  infinity,  infinity);
 	Point3 max(-infinity, -infinity, -infinity);
 
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < 2; i++)
 	{
-		for (int j = 0; j < 2; ++j)
+		for (int j = 0; j < 2; j++)
 		{
-			for (int k = 0; k < 2; ++k)
+			for (int k = 0; k < 2; k++)
 			{
-				Point3 old_point(i * bbox.max().x() + (1 - i) * bbox.min().x(),
-						 j * bbox.max().y() + (1 - j) * bbox.min().y(),
-						 k * bbox.max().z() + (1 - k) * bbox.min().z());
+				auto x = i * bbox.max().x() + (1 - i) * bbox.min().x();
+				auto y = j * bbox.max().y() + (1 - j) * bbox.min().y();
+				auto z = k * bbox.max().z() + (1 - k) * bbox.min().z();
 
-				Point3 new_point(0, 0, 0);
-				new_point[b_ind] = cos_theta * old_point[b_ind] + sin_theta * old_point[c_ind];
-				new_point[c_ind] = -sin_theta * old_point[b_ind] + cos_theta * old_point[c_ind];
+				auto newx =  cos_theta * x + sin_theta * z;
+				auto newz = -sin_theta * x + cos_theta * z;
 
-				Point3 tester(0, 0, 0);
-				tester[a_ind] = old_point[a_ind];
-				tester[b_ind] = new_point[b_ind];
-				tester[c_ind] = new_point[c_ind];
+				Vec3 tester(newx, y, newz);
 
-				for (int c = 0; c < 3; ++c)
+				for (int c = 0; c < 3; c++)
 				{
-					min[c] = std::min(min[c], tester[c]);
-					max[c] = std::max(max[c], tester[c]);
+					min[c] = fmin(min[c], tester[c]);
+					max[c] = fmax(max[c], tester[c]);
 				}
 			}
 		}
 	}
 
-
 	bbox = AABB(min, max);
 }
 
-bool Rotate::hit(const Ray& r, double t_min, double t_max, Record& rec) const
-{
+bool Rotate::hit(const Ray& r, double t_min, double t_max, Record& rec, std::mt19937& rgen) const {
 	auto origin = r.origin();
 	auto direction = r.direction();
 
-	origin[b_ind] = cos_theta * r.origin()[b_ind] - sin_theta * r.origin()[c_ind];
-	origin[c_ind] = sin_theta * r.origin()[b_ind] + cos_theta * r.origin()[c_ind];
+	origin[0] = cos_theta * r.origin()[0] - sin_theta * r.origin()[2];
+	origin[2] = sin_theta * r.origin()[0] + cos_theta * r.origin()[2];
 
-	direction[b_ind] = cos_theta * r.direction()[b_ind] - sin_theta * r.direction()[c_ind];
-	direction[c_ind] = sin_theta * r.direction()[b_ind] + cos_theta * r.direction()[c_ind];
+	direction[0] = cos_theta * r.direction()[0] - sin_theta * r.direction()[2];
+	direction[2] = sin_theta * r.direction()[0] + cos_theta * r.direction()[2];
 
 	Ray rotated_r(origin, direction, r.time());
 
-	if (!ptr->hit(rotated_r, t_min, t_max, rec))
+	if (!ptr->hit(rotated_r, t_min, t_max, rec, rgen))
 	{
 		return false;
 	}
@@ -82,11 +56,11 @@ bool Rotate::hit(const Ray& r, double t_min, double t_max, Record& rec) const
 	auto p = rec.p;
 	auto normal = rec.normal;
 
-	p[b_ind] =  cos_theta * rec.p[b_ind] + sin_theta * rec.p[c_ind];
-	p[c_ind] = -sin_theta * rec.p[b_ind] + cos_theta * rec.p[c_ind];
+	p[0] =  cos_theta * rec.p[0] + sin_theta * rec.p[2];
+	p[2] = -sin_theta * rec.p[0] + cos_theta * rec.p[2];
 
-	normal[b_ind] =  cos_theta * rec.normal[b_ind] + sin_theta * rec.normal[c_ind];
-	normal[c_ind] = -sin_theta * rec.normal[b_ind] + cos_theta * rec.normal[c_ind];
+	normal[0] =  cos_theta * rec.normal[0] + sin_theta * rec.normal[2];
+	normal[2] = -sin_theta * rec.normal[0] + cos_theta * rec.normal[2];
 
 	rec.p = p;
 	rec.set_face_normal(rotated_r, normal);
@@ -94,8 +68,7 @@ bool Rotate::hit(const Ray& r, double t_min, double t_max, Record& rec) const
 	return true;
 }
 
-bool Rotate::bounding_box(double t0, double t1, AABB& output_box) const
-{
+bool Rotate::bounding_box(double t0, double t1, AABB& output_box) const {
 	output_box = bbox;
-	return has_box;
+	return hasbox;
 }
