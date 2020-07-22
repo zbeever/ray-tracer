@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "../geometry/Ray.h"
+#include "PDF.h"
 
 class Material;
 
@@ -20,4 +21,12 @@ struct Record
 		front_face = dot(r.direction(), outward_normal) < 0;
 		normal = front_face ? outward_normal : -outward_normal;
 	}
+};
+
+struct ScatterRecord
+{
+	Ray specular_ray;
+	bool is_specular;
+	Color attenuation;
+	std::shared_ptr<PDF> pdf_ptr;
 };

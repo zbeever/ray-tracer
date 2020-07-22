@@ -19,22 +19,19 @@ Point3 AABB::max() const
 
 bool AABB::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
-	for (int a = 0; a < 3; ++a)
-	{
+	for (int a = 0; a < 3; ++a) {
 		auto invD = 1.0f / ray.direction()[a];
 		auto t0 = (min()[a] - ray.origin()[a]) * invD;
 		auto t1 = (max()[a] - ray.origin()[a]) * invD;
 
-		if (invD < 0.0f)
-		{
+		if (invD < 0.0f) {
 			std::swap(t0, t1);
 		}
 
 		double tmin = t0 > t_min ? t0 : t_min;
 		double tmax = t1 < t_max ? t1 : t_max;
 
-		if (tmax <= tmin)
-		{
+		if (tmax <= tmin) {
 			return false;
 		}
 	}

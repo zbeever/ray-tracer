@@ -13,25 +13,17 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Surface>>& objects, size_t start, s
 
 	size_t object_span = end - start;
 
-	if (object_span == 1)
-	{
+	if (object_span == 1) {
 		left = right = objects[start];
-	}
-	else if (object_span == 2)
-	{
-		if (comparator(objects[start], objects[start + 1]))
-		{
+	} else if (object_span == 2) {
+		if (comparator(objects[start], objects[start + 1])) {
 			left = objects[start];
 			right = objects[start + 1];
-		}
-		else
-		{
+		} else {
 			left = objects[start + 1];
 			right = objects[start];
 		}
-	}
-	else
-	{
+	} else {
 		std::sort(objects.begin() + start, objects.begin() + end, comparator);
 
 		auto mid = start + object_span / 2;
@@ -41,8 +33,7 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Surface>>& objects, size_t start, s
 
 	AABB box_left, box_right;
 
-	if (!left->bounding_box(time0, time1, box_left) || !right->bounding_box(time0, time1, box_right))
-	{
+	if (!left->bounding_box(time0, time1, box_left) || !right->bounding_box(time0, time1, box_right)) {
 		std::cerr << "No bounding box in BVHNode constructor.\n";
 	}
 
@@ -51,8 +42,7 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Surface>>& objects, size_t start, s
 
 bool BVHNode::hit(const Ray& ray, const double t_min, const double t_max, Record& rec, std::mt19937& rgen) const
 {
-	if (!box.hit(ray, t_min, t_max, rec, rgen))
-	{
+	if (!box.hit(ray, t_min, t_max, rec, rgen)) {
 		return false;
 	}
 

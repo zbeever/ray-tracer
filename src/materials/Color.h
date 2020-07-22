@@ -4,12 +4,17 @@
 
 #include <fstream>
 #include <algorithm>
+#include <math.h>
 
 Color toRGB(const Color& pixel_color, const int spp)
 {
 	auto r = pixel_color.r();
 	auto g = pixel_color.g();
 	auto b = pixel_color.b();
+
+	if (isnan(r) == true) r = 0.0;
+	if (isnan(g) == true) g = 0.0;
+	if (isnan(b) == true) b = 0.0;
 
 	auto scale = 1. / spp;
 

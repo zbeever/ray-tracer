@@ -5,20 +5,15 @@ AARect::AARect()
 
 AARect::AARect(char _axis, double _b0, double _b1, double _c0, double _c1, double _k, std::shared_ptr<Material> mat): b0(_b0), b1(_b1), c0(_c0), c1(_c1), k(_k), mp(mat)
 {
-	if (_axis == 'x')
-	{
+	if (_axis == 'x') {
 		a_ind = 0;
 		b_ind = 1;
 		c_ind = 2;
-	}
-	else if (_axis == 'y')
-	{
+	} else if (_axis == 'y') {
 		a_ind = 1;
 		b_ind = 0;
 		c_ind = 2;
-	}
-	else if (_axis == 'z')
-	{
+	} else if (_axis == 'z') {
 		a_ind = 2;
 		b_ind = 0;
 		c_ind = 1;
@@ -29,8 +24,7 @@ bool AARect::hit(const Ray& r, double t0, double t1, Record& rec, std::mt19937& 
 {
 	// Check if the rectangle is in front of the ray
 	auto t = (k - r.origin()[a_ind]) / r.direction()[a_ind];
-	if (t < t0 || t > t1)
-	{
+	if (t < t0 || t > t1) {
 		return false;
 	}
 
@@ -38,8 +32,7 @@ bool AARect::hit(const Ray& r, double t0, double t1, Record& rec, std::mt19937& 
 	double b = r.origin()[b_ind] + t * r.direction()[b_ind];
 	double c = r.origin()[c_ind] + t * r.direction()[c_ind];
 	// std::cerr << b << " " << c << "\n" << std::flush;
-	if (b < b0 || b > b1 || c < c0 || c > c1)
-	{
+	if (b < b0 || b > b1 || c < c0 || c > c1) {
 		return false;
 	}
 
@@ -77,8 +70,9 @@ bool AARect::bounding_box(double t0, double t1, AABB& output_box) const
 double AARect::pdf_value(const Point3& origin, const Vec3& v, std::mt19937& rgen) const
 {
 	Record rec;
-	if (!this->hit(Ray(origin, v), 1e-3, infinity, rec, rgen))
+	if (!this->hit(Ray(origin, v), 1e-3, infinity, rec, rgen)) {
 		return 0;
+	}
 
 	auto area = (b1 - b0) * (c1 - c0);
 	auto distance_squared = rec.t * rec.t * v.length_squared();

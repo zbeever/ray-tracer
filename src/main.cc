@@ -48,121 +48,36 @@ Color ray_color(const Ray& r, const Color& background, const Scene& world, std::
 {
 	Record rec;
 
-	double p = 0.75;
+	double p = 1.00;
 	if (depth > 5) {
+		p = 0.75;
 		if (random_double(rgen) < 1 - p) {
 			return Color(0, 0, 0);
 		}
 	}
-
 	if (!world.hit(r, eps, infinity, rec, rgen)) {
-		if (depth > 5) {
-			return background / p;
-		} else {
-			return background;	
-		}
+		return background / p;
 	}
 
-	Ray scattered;
-	Color attenuation;
+	ScatterRecord srec;
 	Color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.p);
-	double pdf_val;
-	Color albedo;
 
-	if (!rec.mat_ptr->scatter(r, rec, albedo, scattered, pdf_val, rgen)) {
-		if (depth > 5) {
-			return emitted / p;
-		} else {
-			return emitted;
-		}
+	if (!rec.mat_ptr->scatter(r, rec, srec, rgen)) {
+		return emitted / p;
 	}
 
-	std::shared_ptr<Surface> light_shape = std::make_shared<AARect>('y', 213, 343, 227, 332, 554, std::shared_ptr<Material>());
-	auto p0 = std::make_shared<SurfacePDF>(light_shape, rec.p);
-	auto p1 = std::make_shared<CosinePDF>(rec.normal);
-	MixturePDF pdf(p0, p1);
-
-	scattered = Ray(rec.p, pdf.generate(rgen), r.time());
-	pdf_val = pdf.value(scattered.direction(), rgen);
-
-	if (depth > 5) {
-		return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, lights, depth + 1, rgen) / (pdf_val * p);
-	} else {
-		return emitted + albedo * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, lights, depth + 1, rgen) / pdf_val;
-	}
-}
-
-Scene final_scene()
-{
-	std::mt19937 rgen;
-
-	Scene objects;
-
-	Scene boxes1;
-	auto light = std::make_shared<DiffuseLight>(std::make_shared<Solid>(7, 7, 7));
-	auto ground = std::make_shared<Lambertian>(std::make_shared<Solid>(0.48, 0.83, 0.53));
-
-	const int boxes_per_side = 10;
-	for (int i = 0; i < boxes_per_side; i++) {
-		for (int j = 0; j < boxes_per_side; j++) {
-			auto w = 100.0;
-			auto x0 = 0.0 + i*w;
-			auto z0 = -500.0 + j*w;
-			auto y0 = 0.0;
-			auto x1 = x0 + w;
-			auto y1 = random_double(1, 101, rgen);
-			auto z1 = z0 + w;
-
-			boxes1.add(std::make_shared<Box>(Point3(x0,y0,z0), Point3(x1,y1,z1), ground));
-		}
+	if (srec.is_specular) {
+		return srec.attenuation * ray_color(srec.specular_ray, background, world, lights, depth + 1, rgen) / p;
 	}
 
+	auto light_ptr = std::make_shared<SurfacePDF>(lights, rec.p);
+	MixturePDF pdf(light_ptr, srec.pdf_ptr);
 
-	objects.add(std::make_shared<BVHNode>(boxes1, 0, 1, rgen));
-	objects.add(std::make_shared<AARect>('y', 123, 423, 147, 412, 554, light));
+	Ray scattered = Ray(rec.p, pdf.generate(rgen), r.time());
+	auto pdf_val = pdf.value(scattered.direction(), rgen);
 
-	auto center1 = Point3(400, 400, 200);
-	auto center2 = center1 + Vec3(30,0,0);
-	auto moving_sphere_material = std::make_shared<Lambertian>(std::make_shared<Solid>(0.7, 0.3, 0.1));
-
-	objects.add(std::make_shared<MovingSphere>(center1, center2, 0, 1, 50, moving_sphere_material));
-
-	// Glass sphere
-	objects.add(std::make_shared<Sphere>(Point3(260, 150, 45), 50, std::make_shared<Dielectric>(std::make_shared<Solid>(1.0, 1.0, 1.0), 1.5)));
-
-	// Metal sphere
-	objects.add(std::make_shared<Sphere>(Point3(0, 150, 145), 50, std::make_shared<Metal>(std::make_shared<Solid>(0.8, 0.8, 0.9), 10.0)));
-
-	// Foggy glass sphere
-	auto boundary = std::make_shared<Sphere>(Point3(360,150,145), 70, std::make_shared<Dielectric>(std::make_shared<Solid>(1.0, 1.0, 1.0), 1.5));
-	objects.add(boundary);
-	objects.add(std::make_shared<ConstantMedium>(boundary, 0.2, std::make_shared<Solid>(0.2, 0.4, 0.9)));
-	boundary = std::make_shared<Sphere>(Point3(0, 0, 0), 5000, std::make_shared<Dielectric>(std::make_shared<Solid>(1.0, 1.0, 1.0), 1.5));
-	objects.add(std::make_shared<ConstantMedium>(boundary, .0001, std::make_shared<Solid>(1,1,1)));
-
-	// Earth sphere
-	auto emat = std::make_shared<Lambertian>(std::make_shared<Image>("../images/earthmap.jpg"));
-	objects.add(std::make_shared<Sphere>(Point3(400,200,400), 100, emat));
-
-	// Marble sphere
-	auto pertext = std::make_shared<Noise>(0.1);
-	objects.add(std::make_shared<Sphere>(Point3(220,280,300), 80, std::make_shared<Lambertian>(pertext)));
-
-	/*
-	Scene boxes2;
-	auto white = std::make_shared<Lambertian>(std::make_shared<Solid>(.73, .73, .73));
-	int ns = 1000;
-	for (int j = 0; j < ns; j++) {
-		boxes2.add(std::make_shared<Sphere>(Point3(random_double(0, 165, rgen), random_double(0, 165, rgen), random_double(0, 165, rgen)), 10, white));
-	}
-
-	objects.add(std::make_shared<Translate>(
-				std::make_shared<Rotate>(
-					std::make_shared<BVHNode>(boxes2, 0.0, 1.0, rgen), 15),
-				Vec3(-100,270,395)));
-	*/
-
-	return objects;
+	// return emitted + srec.attenuation * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, lights, depth + 1, rgen) / (pdf_val * p);
+	return emitted + srec.attenuation * srec.pdf_ptr->value(scattered.direction(), rgen) * ray_color(scattered, background, world, lights, depth + 1, rgen) / (pdf_val * p);
 }
 
 Scene cornell_box()
@@ -201,17 +116,18 @@ int main()
 	const auto aspect_ratio = 1.0; 
 	const int image_width = 500;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
-	const int spp = 100;
+	const int spp = 40;
 
 	Scene world = cornell_box();
-	std::shared_ptr<Surface> lights;
+	std::shared_ptr<Scene> lights = std::make_shared<Scene>();
+	lights->add(std::make_shared<AARect>('y', 213, 343, 227, 332, 554, std::shared_ptr<Material>()));
 
 	Point3 lookfrom(278, 278, -800);
 	Point3 lookat(278, 278, 0);
 	Vec3 vup(0, 1, 0);
 	auto dist_to_focus = 10;
 	auto aperture = 0.0;
-	Camera cam(lookfrom, lookat, vup, 40, aspect_ratio, aperture, dist_to_focus, 0, 1);
+	Camera cam(lookfrom, lookat, vup, 37, aspect_ratio, aperture, dist_to_focus, 0, 1);
 
 	// Open a file, make sure it's loaded, and create the header
 	std::ofstream file;
