@@ -9,3 +9,8 @@ bool Isotropic::scatter(const Ray& r_in, const Record& rec, Color& attenuation, 
 	attenuation = albedo->value(rec.u, rec.v, rec.p);
 	return true;
 }
+
+std::shared_ptr<Isotropic> Isotropic::make(std::shared_ptr<Texture> a)
+{
+	return std::make_shared<Isotropic>(a);
+}

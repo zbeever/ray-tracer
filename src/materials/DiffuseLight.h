@@ -1,26 +1,15 @@
 #pragma once
 
-#include "Material.h"
+#include "../engine/Material.h"
 
 class DiffuseLight: public Material
 {
 public:
 	std::shared_ptr<Texture> emit;
 
-	DiffuseLight(std::shared_ptr<Texture> a): emit(a)
-	{ }
+	DiffuseLight(std::shared_ptr<Texture> a);
 
-	virtual bool scatter(const Ray& r_in, const Record& rec, Color& attenuation, Ray& scattered, std::mt19937& rgen) const
-	{
-		return false;
-	}
-
-	virtual Color emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
-	{
-		if (rec.front_face)
-			return emit->value(u, v, p);
-		else
-			return Color(0.0, 0.0, 0.0);
-		return Color(0.0, 0.0, 0.0);
-	}
+	virtual bool scatter(const Ray& r_in, const Record& rec, Color& attenuation, Ray& scattered, std::mt19937& rgen) const;
+	virtual Color emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const;
+	static std::shared_ptr<DiffuseLight> make(std::shared_ptr<Texture> a);
 };

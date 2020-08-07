@@ -1,6 +1,5 @@
 #include "Camera.h"
-#include <random>
-#include "../geometry/Ray.h"
+#include "Utils.h"
 
 Camera::Camera(const Point3& lookfrom, const Point3& lookat, const Vec3& vup, const double vfov, const double aspect_ratio, const double aperture, const double focus_dist, const double t0, const double t1)
 {
@@ -31,7 +30,7 @@ Ray Camera::get_ray(const double s, const double t, std::mt19937& rgen) const
 	Vec3 offset = u * rd.x() + v * rd.y();
 
 	// Adding the offset to the ray origin and subtracting it from the direction vector ensures that rays sent to the same
-	// (s, t) coordinates always coincide on the viewing plane
+	// (s, t) coordinates coincide at the viewing plane
 	return Ray(origin + offset, lower_left_corner + s*horizontal + t*vertical - origin - offset, random_double(time0, time1, rgen));
 }
 

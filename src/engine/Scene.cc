@@ -1,5 +1,5 @@
 #include "Scene.h"
-#include "../geometry/AABB.h"
+#include "AABB.h"
 
 Scene::Scene()
 { }

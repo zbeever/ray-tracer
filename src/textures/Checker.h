@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Texture.h"
 #include <memory>
+#include "../engine/Texture.h"
 
 class Checker: public Texture
 {
@@ -13,4 +13,5 @@ public:
 	Checker(std::shared_ptr<Texture> t0, std::shared_ptr<Texture> t1);
 
 	virtual Color value(double u, double v, const Point3& p) const;
+	static std::shared_ptr<Checker> make(std::shared_ptr<Texture> t0, std::shared_ptr<Texture> t1);
 };

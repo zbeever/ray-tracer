@@ -18,24 +18,19 @@ bool Dielectric::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec
 	double cos_theta = std::min(dot(-unit_direction, rec.normal), 1.0);
 	double sin_theta = sqrt(1.0 - cos_theta*cos_theta);
 
-	if (etai_over_etat * sin_theta > 1.0)
-	{
+	if (etai_over_etat * sin_theta > 1.0) {
 		Vec3 reflected = reflect(unit_direction, rec.normal);
-		// scattered = Ray(rec.p, reflected, r_in.time());
 		srec.specular_ray = Ray(rec.p, reflected, r_in.time());
-		// attenuation = Color(1., 1., 1.);
 		srec.attenuation = Color(1., 1., 1.);
 		srec.is_specular = true;
 		srec.pdf_ptr = 0;
 		return true;
 	}
+
 	double reflect_prob = schlick(cos_theta, etai_over_etat);
-	if (random_double(rgen) < reflect_prob)
-	{
+	if (random_double(rgen) < reflect_prob) {
 		Vec3 reflected = reflect(unit_direction, rec.normal);
-		// scattered = Ray(rec.p, reflected, r_in.time());
 		srec.specular_ray = Ray(rec.p, reflected, r_in.time());
-		// attenuation = Color(1., 1., 1.);
 		srec.attenuation = Color(1., 1., 1.);
 		srec.is_specular = true;
 		srec.pdf_ptr = 0;
@@ -43,11 +38,14 @@ bool Dielectric::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec
 	}
 
 	Vec3 refracted = refract(unit_direction, rec.normal, etai_over_etat);
-	// scattered = Ray(rec.p, refracted, r_in.time());
 	srec.specular_ray = Ray(rec.p, refracted, r_in.time());
-	// attenuation = albedo->value(rec.u, rec.v, rec.p);
 	srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
 	srec.is_specular = true;
 	srec.pdf_ptr = 0;
 	return true;
+}
+
+std::shared_ptr<Dielectric> Dielectric::make(std::shared_ptr<Texture> albedo_, const double ri_)
+{
+	return std::make_shared<Dielectric>(albedo_, ri_);
 }

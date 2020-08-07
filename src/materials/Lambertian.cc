@@ -1,6 +1,6 @@
 #include "Lambertian.h"
-#include "../engine/CosinePDF.h"
-#include "../geometry/ONB.h"
+#include "../samplers/CosinePDF.h"
+#include "../engine/ONB.h"
 
 Lambertian::Lambertian(std::shared_ptr<Texture> albedo_): albedo(albedo_)
 { }
@@ -11,4 +11,9 @@ bool Lambertian::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec
 	srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
 	srec.pdf_ptr = std::make_shared<CosinePDF>(rec.normal);
 	return true;
+}
+
+std::shared_ptr<Lambertian> Lambertian::make(std::shared_ptr<Texture> albedo_)
+{
+	return std::make_shared<Lambertian>(albedo_);
 }

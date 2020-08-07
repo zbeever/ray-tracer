@@ -1,7 +1,7 @@
 #pragma once
 
 #include <random>
-#include "../geometry/Vec3.h"
+#include "Vec3.h"
 
 class PDF
 {

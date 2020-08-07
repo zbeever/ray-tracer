@@ -4,45 +4,49 @@
 #include <ctime>
 #include <ratio>
 #include <omp.h>
+#include <math.h>
+#include <algorithm>
 
-#include "engine/Utils.h"
-#include "engine/Camera.h"
-#include "engine/Record.h"
-#include "engine/Scene.h"
+#include "engine/AABB.h"
 #include "engine/BVHNode.h"
-
+#include "engine/Camera.h"
+#include "engine/Material.h"
+#include "engine/ONB.h"
 #include "engine/PDF.h"
-#include "engine/CosinePDF.h"
-#include "engine/SurfacePDF.h"
-#include "engine/MixturePDF.h"
-
-#include "geometry/MovingSphere.h"
-#include "geometry/Ray.h"
-#include "geometry/Sphere.h"
-#include "geometry/Surface.h"
-#include "geometry/Vec3.h"
-#include "geometry/AARect.h"
-#include "geometry/FlipNormals.h"
-#include "geometry/Box.h"
-#include "geometry/Translate.h"
-#include "geometry/Rotate.h"
-#include "geometry/ConstantMedium.h"
-#include "geometry/ONB.h"
+#include "engine/Ray.h"
+#include "engine/Record.h"
+#include "engine/ScatterRecord.h"
+#include "engine/Scene.h"
+#include "engine/Surface.h"
+#include "engine/Texture.h"
+#include "engine/Utils.h"
+#include "engine/Vec3.h"
 
 #include "materials/Dielectric.h"
-#include "materials/Material.h"
-#include "materials/Color.h"
-#include "materials/Metal.h"
-#include "materials/Lambertian.h"
 #include "materials/DiffuseLight.h"
 #include "materials/Isotropic.h"
+#include "materials/Lambertian.h"
+#include "materials/Metal.h"
 
-#include "textures/Solid.h"
+#include "primitives/AARect.h"
+#include "primitives/Box.h"
+#include "primitives/ConstantMedium.h"
+#include "primitives/MovingSphere.h"
+#include "primitives/Sphere.h"
+
+#include "samplers/CosinePDF.h"
+#include "samplers/MixturePDF.h"
+#include "samplers/SurfacePDF.h"
+
 #include "textures/Checker.h"
-#include "textures/Texture.h"
-#include "textures/Perlin.h"
-#include "textures/Noise.h"
 #include "textures/Image.h"
+#include "textures/Noise.h"
+#include "textures/Perlin.h"
+#include "textures/SolidColor.h"
+
+#include "transformations/FlipNormals.h"
+#include "transformations/Rotate.h"
+#include "transformations/Translate.h"
 
 Color ray_color(const Ray& r, const Color& background, const Scene& world, std::shared_ptr<Surface> lights, const int depth, std::mt19937& rgen)
 {
@@ -76,7 +80,6 @@ Color ray_color(const Ray& r, const Color& background, const Scene& world, std::
 	Ray scattered = Ray(rec.p, pdf.generate(rgen), r.time());
 	auto pdf_val = pdf.value(scattered.direction(), rgen);
 
-	// return emitted + srec.attenuation * rec.mat_ptr->scattering_pdf(r, rec, scattered) * ray_color(scattered, background, world, lights, depth + 1, rgen) / (pdf_val * p);
 	return emitted + srec.attenuation * srec.pdf_ptr->value(scattered.direction(), rgen) * ray_color(scattered, background, world, lights, depth + 1, rgen) / (pdf_val * p);
 }
 
@@ -84,29 +87,66 @@ Scene cornell_box()
 {
 	Scene world;
 
-	auto red   = std::make_shared<Lambertian>(  std::make_shared<Solid>(0.65, 0.05, 0.05));
-	auto white = std::make_shared<Lambertian>(  std::make_shared<Solid>(0.73, 0.73, 0.73));
-	auto green = std::make_shared<Lambertian>(  std::make_shared<Solid>(0.12, 0.45, 0.15));
-	auto light = std::make_shared<DiffuseLight>(std::make_shared<Solid>(15.0, 15.0, 15.0));
+	auto red   = Lambertian::make( SolidColor::make(0.65, 0.05, 0.05) );
+	auto white = Lambertian::make( SolidColor::make(0.73, 0.73, 0.73) );
+	auto green = Lambertian::make( SolidColor::make(0.12, 0.45, 0.15) );
 
-	world.add(std::make_shared<FlipNormals>(std::make_shared<AARect>('x', 0, 555, 0, 555, 555, green)));
-	world.add(std::make_shared<AARect>('x', 0, 555, 0, 555, 0, red));
-	world.add(std::make_shared<FlipNormals>(std::make_shared<AARect>('y', 213, 343, 227, 332, 554, light)));
-	world.add(std::make_shared<FlipNormals>(std::make_shared<AARect>('y', 0, 555, 0, 555, 555, white)));
-	world.add(std::make_shared<AARect>('y', 0, 555, 0, 555, 0, white));
-	world.add(std::make_shared<FlipNormals>(std::make_shared<AARect>('z', 0, 555, 0, 555, 555, white)));
+	auto light = DiffuseLight::make( SolidColor::make(15.0, 15.0, 15.0) );
 
-	std::shared_ptr<Surface> box1 = std::make_shared<Box>(Point3(0, 0, 0), Point3(165, 330, 165), white);
-	box1 = std::make_shared<Rotate>(box1, 15);
-	box1 = std::make_shared<Translate>(box1, Vec3(265, 0, 295));
+	world.add( FlipNormals::applyTo( AARect::make('x', 0,   555, 0,   555, 555, green) ) );
+	world.add( 			 AARect::make('x', 0,   555, 0,   555, 0,   red  )   );
+	world.add( FlipNormals::applyTo( AARect::make('y', 213, 343, 227, 332, 554, light) ) );
+	world.add( FlipNormals::applyTo( AARect::make('y', 0,   555, 0,   555, 555, white) ) );
+	world.add( 			 AARect::make('y', 0,   555, 0,   555, 0,   white)   );
+	world.add( FlipNormals::applyTo( AARect::make('z', 0,   555, 0,   555, 555, white) ) );
+
+	std::shared_ptr<Surface> box1 = Box::make(Point3(0, 0, 0), Point3(165, 330, 165), white);
+	box1 = Rotate::applyTo(    box1, 15                );
+	box1 = Translate::applyTo( box1, Vec3(265, 0, 295) );
 	world.add(box1);
 
-	std::shared_ptr<Surface> box2 = std::make_shared<Box>(Point3(0, 0, 0), Point3(165, 165, 165), white);
-	box2 = std::make_shared<Rotate>(box2, -18);
-	box2 = std::make_shared<Translate>(box2, Vec3(130, 0, 65));
+	std::shared_ptr<Surface> box2 = Box::make(Point3(0, 0, 0), Point3(165, 165, 165), white);
+	box2 = Rotate::applyTo(    box2, -18              );
+	box2 = Translate::applyTo( box2, Vec3(130, 0, 65) );
 	world.add(box2);
 
 	return world;
+}
+
+Color toRGB(const Color& pixel_color, const int spp)
+{
+	auto r = pixel_color.r();
+	auto g = pixel_color.g();
+	auto b = pixel_color.b();
+
+	if (isnan(r) == true) r = 0.0;
+	if (isnan(g) == true) g = 0.0;
+	if (isnan(b) == true) b = 0.0;
+
+	auto scale = 1. / spp;
+
+	r *= scale;
+	g *= scale;
+	b *= scale;
+
+	double m = std::max(std::max(r, g), std::max(b, 1.));
+	r *= 1. / m;
+	g *= 1. / m;
+	b *= 1. / m;
+
+	m = std::clamp((m - 1.) * .2, 0., 1.);
+	r = m + r * (1. - m);
+	g = m + g * (1. - m);
+	b = m + b * (1. - m);
+
+	auto inv_gamma = 1. / 2.2;
+	r = pow(r, inv_gamma);
+	g = pow(g, inv_gamma);
+	b = pow(b, inv_gamma);
+
+	return Color(static_cast<int>(256 * std::clamp(r, 0., .999)),
+		     static_cast<int>(256 * std::clamp(g, 0., .999)),
+		     static_cast<int>(256 * std::clamp(b, 0., .999)));
 }
 
 int main()
@@ -116,7 +156,7 @@ int main()
 	const auto aspect_ratio = 1.0; 
 	const int image_width = 500;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
-	const int spp = 40;
+	const int spp = 100;
 
 	Scene world = cornell_box();
 	std::shared_ptr<Scene> lights = std::make_shared<Scene>();

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <random>
-
-#include "../geometry/Vec3.h"
-#include "../geometry/Ray.h"
-#include "Utils.h"
+#include "Vec3.h"
+#include "Ray.h"
 
 class Camera
 {

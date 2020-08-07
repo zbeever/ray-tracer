@@ -12,3 +12,8 @@ bool Metal::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec, std
 	srec.pdf_ptr = 0;
 	return true;
 }
+
+std::shared_ptr<Metal> Metal::make(std::shared_ptr<Texture> albedo_, const double fuzz_)
+{
+	return std::make_shared<Metal>(albedo_, fuzz_);
+}

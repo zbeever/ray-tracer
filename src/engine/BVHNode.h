@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../geometry/Surface.h"
+#include "Surface.h"
 #include "Scene.h"
 
 class BVHNode: public Surface

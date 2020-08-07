@@ -1,9 +1,8 @@
 #pragma once
 
-#include "../geometry/Surface.h"
-
 #include <memory>
 #include <vector>
+#include "Surface.h"
 
 class Scene: public Surface
 {
