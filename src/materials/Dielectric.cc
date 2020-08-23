@@ -1,6 +1,6 @@
 #include "Dielectric.h"
 
-Dielectric::Dielectric(std::shared_ptr<Texture> albedo_, const double ri_): albedo(albedo_), ri(ri_)
+Dielectric::Dielectric(std::shared_ptr<Texture> albedo_, std::shared_ptr<Spectrum> ri_): albedo(albedo_), ri(ri_)
 { }
 
 double schlick(const double cosine, const double ri)
@@ -12,7 +12,8 @@ double schlick(const double cosine, const double ri)
 
 bool Dielectric::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec, std::mt19937& rgen) const
 {
-	double etai_over_etat = (rec.front_face) ? (1.0 / ri) : ri;
+	double actual_ri = ri->get(r_in.bin());
+	double etai_over_etat = (rec.front_face) ? (1.0 / actual_ri) : actual_ri;
 
 	Vec3 unit_direction = normalize(r_in.direction());
 	double cos_theta = std::min(dot(-unit_direction, rec.normal), 1.0);
@@ -20,32 +21,29 @@ bool Dielectric::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec
 
 	if (etai_over_etat * sin_theta > 1.0) {
 		Vec3 reflected = reflect(unit_direction, rec.normal);
-		srec.specular_ray = Ray(rec.p, reflected, r_in.time());
-		srec.attenuation = Color(1., 1., 1.);
+		srec.specular_ray = Ray(rec.p, reflected, r_in.time(), r_in.bin());
 		srec.is_specular = true;
-		srec.pdf_ptr = 0;
+		srec.pdf_ptr = nullptr;
 		return true;
 	}
 
 	double reflect_prob = schlick(cos_theta, etai_over_etat);
 	if (random_double(rgen) < reflect_prob) {
 		Vec3 reflected = reflect(unit_direction, rec.normal);
-		srec.specular_ray = Ray(rec.p, reflected, r_in.time());
-		srec.attenuation = Color(1., 1., 1.);
+		srec.specular_ray = Ray(rec.p, reflected, r_in.time(), r_in.bin());
 		srec.is_specular = true;
-		srec.pdf_ptr = 0;
+		srec.pdf_ptr = nullptr;
 		return true;
 	}
 
 	Vec3 refracted = refract(unit_direction, rec.normal, etai_over_etat);
-	srec.specular_ray = Ray(rec.p, refracted, r_in.time());
-	srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
+	srec.specular_ray = Ray(rec.p, refracted, r_in.time(), r_in.bin());
 	srec.is_specular = true;
-	srec.pdf_ptr = 0;
+	srec.pdf_ptr = nullptr;
 	return true;
 }
 
-std::shared_ptr<Dielectric> Dielectric::make(std::shared_ptr<Texture> albedo_, const double ri_)
+std::shared_ptr<Dielectric> Dielectric::make(std::shared_ptr<Texture> albedo_, std::shared_ptr<Spectrum> ri_)
 {
 	return std::make_shared<Dielectric>(albedo_, ri_);
 }

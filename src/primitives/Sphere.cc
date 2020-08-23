@@ -50,11 +50,11 @@ bool Sphere::bounding_box(const double t0, const double t1, AABB& output_box) co
 double Sphere::pdf_value(const Point3& o, const Vec3& v, std::mt19937& rgen) const
 {
 	Record rec;
-	if (!this->hit(Ray(o, v), 1e-3, infinity, rec, rgen))
+	if (!this->hit(Ray(o, v), EPS, INF, rec, rgen))
 		return 0;
 
 	auto cos_theta_max = sqrt(1 - radius * radius / (center - o).length_squared());
-	auto solid_angle = 2 * pi * (1 - cos_theta_max);
+	auto solid_angle = 2 * PI * (1 - cos_theta_max);
 
 	return 1 / solid_angle;
 }
@@ -72,6 +72,11 @@ void get_sphere_uv(const Vec3& p, double& u, double& v)
 {
 	auto phi = atan2(p.z(), p.x());
 	auto theta = asin(p.y());
-	u = 1 - (phi + pi) / (2 * pi);
-	v = (theta + pi / 2) / pi;
+	u = 1 - (phi + PI) / (2 * PI);
+	v = (theta + PI / 2) / PI;
+}
+
+std::shared_ptr<Sphere> Sphere::make(const Point3& center_, const double radius_, std::shared_ptr<Material> mat_ptr_)
+{
+	return std::make_shared<Sphere>(center_, radius_, mat_ptr_);
 }

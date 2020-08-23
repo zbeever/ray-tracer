@@ -70,7 +70,7 @@ bool AARect::bounding_box(double t0, double t1, AABB& output_box) const
 double AARect::pdf_value(const Point3& origin, const Vec3& v, std::mt19937& rgen) const
 {
 	Record rec;
-	if (!this->hit(Ray(origin, v), 1e-3, infinity, rec, rgen)) {
+	if (!this->hit(Ray(origin, v), EPS, INF, rec, rgen)) {
 		return 0;
 	}
 

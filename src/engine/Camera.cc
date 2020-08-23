@@ -31,6 +31,7 @@ Ray Camera::get_ray(const double s, const double t, std::mt19937& rgen) const
 
 	// Adding the offset to the ray origin and subtracting it from the direction vector ensures that rays sent to the same
 	// (s, t) coordinates coincide at the viewing plane
-	return Ray(origin + offset, lower_left_corner + s*horizontal + t*vertical - origin - offset, random_double(time0, time1, rgen));
+
+	return Ray(origin + offset, lower_left_corner + s*horizontal + t*vertical - origin - offset, random_double(time0, time1, rgen), random_int(0, 72, rgen));
 }
 

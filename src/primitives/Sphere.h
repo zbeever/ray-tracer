@@ -25,12 +25,14 @@ public:
 		auto r2 = random_double(rgen);
 		auto z = 1 + r2 * (sqrt(1 - radius * radius / distance_squared) - 1);
 
-		auto phi = 2 * pi * r1;
+		auto phi = 2 * PI * r1;
 		auto x = cos(phi) * sqrt(1 - z * z);
 		auto y = sin(phi) * sqrt(1 - z * z);
 
 		return Vec3(x, y, z);
 	}
+
+	static std::shared_ptr<Sphere> make(const Point3& center_, const double radius_, std::shared_ptr<Material> mat_ptr_);
 };
 
 void get_sphere_uv(const Vec3& p, double& u, double& v);

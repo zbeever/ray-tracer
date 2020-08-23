@@ -6,8 +6,8 @@ Rotate::Rotate(std::shared_ptr<Surface> p, double angle): ptr(p) {
 	cos_theta = cos(radians);
 	hasbox = ptr->bounding_box(0, 1, bbox);
 
-	Point3 min( infinity,  infinity,  infinity);
-	Point3 max(-infinity, -infinity, -infinity);
+	Point3 min( INF,  INF,  INF);
+	Point3 max(-INF, -INF, -INF);
 
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 2; j++) {

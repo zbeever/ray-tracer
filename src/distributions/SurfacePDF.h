@@ -12,6 +12,6 @@ public:
 
 	SurfacePDF(std::shared_ptr<Surface> p, const Point3& origin);
 
-	virtual double value(const Vec3& direction, std::mt19937& rgen) const;
-	virtual Vec3 generate(std::mt19937& rgen) const;
+	virtual double value(const Vec3& wi, const Vec3& wo, std::mt19937& rgen) const;
+	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wo) const;
 };

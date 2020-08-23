@@ -7,9 +7,15 @@
 #include "Texture.h"
 #include "PDF.h"
 
+#include "Spectrum.h"
+
 class Material
 {
 public:
 	virtual bool scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec, std::mt19937& rgen) const;
-	virtual Color emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const;
+	virtual double bxdf(const Ray& r_in, Ray& r_out, const Record& rec, const ScatterRecord& srec) const
+	{
+		return 0.0;
+	}
+	virtual double emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const;
 };

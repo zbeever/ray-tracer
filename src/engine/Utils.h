@@ -3,16 +3,17 @@
 #include <cmath>
 #include <cstdlib>
 #include <random>
+#include <cmath>
 
-const double infinity = std::numeric_limits<double>::infinity();
-const double eps = 1e-3;
-const double pi = 3.1415926535897932385;
-const double inv_pi = 1.0 / pi;
-const double pi_over_180 = pi / 180.0;
+const double INF = std::numeric_limits<double>::infinity();
+const double EPS = 1e-3;
+const double PI = M_PI;
+const double INV_PI = M_1_PI;
+const double PI_OVER_180 = M_PI / 180.0;
 
 inline double degrees_to_radians(const double degrees)
 {
-	return degrees * pi_over_180;
+	return degrees * PI_OVER_180;
 }
 
 inline double random_double(std::mt19937& rgen)

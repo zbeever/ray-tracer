@@ -88,7 +88,7 @@ Vec3 random_in_unit_sphere(std::mt19937& rgen)
 	double u = random_double(rgen);
 	double v = random_double(rgen);
 
-	double phi = 2 * pi * v;
+	double phi = 2 * PI * v;
 	double z = 1 - 2 * u;
 	double r = sqrt(1 - z * z);
 
@@ -99,14 +99,14 @@ Vec3 random_cos_weighted_hemisphere(std::mt19937& rgen)
 {
 	auto u = random_double(rgen);
 	auto sqrt_u = sqrt(u);
-	auto scaled_v = random_double(0, 2 * pi, rgen);
+	auto scaled_v = random_double(0, 2 * PI, rgen);
 	
 	return Vec3(sqrt_u * cos(scaled_v), sqrt_u * sin(scaled_v), sqrt(1 - u));
 }
 
 Vec3 random_unit_vector(std::mt19937& rgen)
 {
-	auto a = random_double(0, 2 * pi, rgen);
+	auto a = random_double(0, 2 * PI, rgen);
 	auto z = random_double(-1, 1, rgen);
 	auto r = sqrt(1 - z * z);
 
@@ -119,9 +119,25 @@ Vec3 random_in_unit_disc(std::mt19937& rgen)
 	double v = random_double(rgen);
 	
 	double r = sqrt(u);
-	double phi = 2 * pi * v;
+	double phi = 2 * PI * v;
 
 	return Vec3(r * cos(phi), r * sin(phi), 0);
+}
+
+Vec3 random_in_beckmann(std::mt19937& rgen, const double m)
+{
+	double u = random_double(rgen);
+	double v = random_double(rgen);
+
+	double theta = atan(-pow(m, 2.0) * log(1.0 - u));
+	double phi = 2 * M_PI * v;
+
+	double sinTheta = sin(theta);
+	double cosTheta = cos(theta);
+	double sinPhi = sin(phi);
+	double cosPhi = cos(phi);
+
+	return Vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
 }
 
 Vec3 reflect(const Vec3& v, const Vec3& n)

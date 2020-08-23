@@ -18,8 +18,8 @@ file(GLOB raytracer_SRC
     "src/textures/*.cc"
     "src/transformations/*.h"
     "src/transformations/*.cc"
-    "src/samplers/*.h"
-    "src/samplers/*.cc"
+    "src/distributions/*.h"
+    "src/distributions/*.cc"
 )
 
 

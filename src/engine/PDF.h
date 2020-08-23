@@ -9,6 +9,6 @@ public:
 	virtual ~PDF()
 	{ }
 
-	virtual double value(const Vec3& direction, std::mt19937& rgen) const = 0;
-	virtual Vec3 generate(std::mt19937& rgen) const = 0;
+	virtual double value(const Vec3& wi, const Vec3& wo, std::mt19937& rgen) const = 0;
+	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wo) const = 0;
 };

@@ -8,15 +8,19 @@ bool DiffuseLight::scatter(const Ray& r_in, const Record& rec, Color& attenuatio
 	return false;
 }
 
-Color DiffuseLight::emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
+// Color DiffuseLight::emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
+double DiffuseLight::emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
 {
 	if (rec.front_face) {
-		return emit->value(u, v, p);
+		// return emit->value(u, v, p);
+		return emit->value(r_in.bin(), u, v, p);
 	} else {
-		return Color(0.0, 0.0, 0.0);
+		// return Color(0.0, 0.0, 0.0);
+		return 0.0;
 	}
 
-	return Color(0.0, 0.0, 0.0);
+	// return Color(0.0, 0.0, 0.0);
+	return 0.0;
 }
 
 std::shared_ptr<DiffuseLight> DiffuseLight::make(std::shared_ptr<Texture> a)

@@ -5,7 +5,8 @@ bool Material::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec, 
 	return false;
 }
 
-Color Material::emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
+// Color Material::emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
+double Material::emitted(const Ray& r_in, const Record& rec, double u, double v, const Point3& p) const
 {
-	return Color(0.0, 0.0, 0.0);
+	return 0.0;
 }

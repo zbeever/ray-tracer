@@ -3,23 +3,21 @@
 SolidColor::SolidColor()
 { }
 
-SolidColor::SolidColor(Color c): color_value(c)
-{ }
-
-SolidColor::SolidColor(double red, double green, double blue): SolidColor(Color(red, green, blue))
-{ }
-
-Color SolidColor::value(double u, double v, const Point3& p) const
+SolidColor::SolidColor(const Spectrum& spectrum): color_value(spectrum)
 {
-	return color_value;
+}
+
+double SolidColor::value(int bin, double u, double v, const Point3& p) const
+{
+	return color_value.get(bin);
 }
 
 std::shared_ptr<SolidColor> SolidColor::make(Color c)
 {
-	return std::make_shared<SolidColor>(c);
+	return std::make_shared<SolidColor>();
 }
 
-std::shared_ptr<SolidColor> SolidColor::make(double red, double green, double blue)
+std::shared_ptr<SolidColor> SolidColor::make(const Spectrum& spectrum)
 {
-	return std::make_shared<SolidColor>(red, green, blue);
+	return std::make_shared<SolidColor>(spectrum);
 }
