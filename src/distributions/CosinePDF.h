@@ -12,5 +12,5 @@ public:
 	CosinePDF(const Vec3& w);
 
 	virtual double value(const Vec3& wi, const Vec3& wo, std::mt19937& rgen) const;
-	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wo) const;
+	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wo, const Vec3& n) const;
 };

@@ -129,7 +129,7 @@ Vec3 random_in_beckmann(std::mt19937& rgen, const double m)
 	double u = random_double(rgen);
 	double v = random_double(rgen);
 
-	double theta = atan(-pow(m, 2.0) * log(1.0 - u));
+	double theta = atan(sqrt(-pow(m, 2.0) * log(1.0 - u)));
 	double phi = 2 * M_PI * v;
 
 	double sinTheta = sin(theta);

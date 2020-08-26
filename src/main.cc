@@ -36,6 +36,7 @@
 #include "materials/Lambertian.h"
 #include "materials/OrenNayar.h"
 // #include "materials/Metal.h"
+#include "materials/MicrofacetTransmission.h"
 
 #include "primitives/AARect.h"
 #include "primitives/Box.h"
@@ -93,7 +94,7 @@ double radiance(const Ray& incident, const Spectrum& background, const Scene& wo
 		MixturePDF pdf(light_ptr, srec.pdf_ptr);
 
 		// Get a ray and its associated PDF value from the above distribution
-		exitant = Ray(rec.p, pdf.generate(rgen, incident.direction()), incident.time(), incident.bin());
+		exitant = Ray(rec.p, pdf.generate(rgen, incident.direction(), rec.normal), incident.time(), incident.bin());
 		pdf_val = pdf.value(incident.direction(), exitant.direction(), rgen);
 
 		// Set the BxDF value
@@ -108,14 +109,21 @@ double radiance(const Ray& incident, const Spectrum& background, const Scene& wo
 		}
 	}
 
+
 	// The weakening factor in the rendering equation
 	Vec3 wo = normalize(exitant.direction());
 	Vec3 n = normalize(rec.normal);
 	double cos_theta = std::abs(dot(wo, n));
 
+	if ((pdf_val < 1e-6) || (cos_theta < 1e-6) || (bxdf < 1e-6)) {
+		return 0.0;
+	}
+
 	// A random sample of the rendering equation: L_o = L_e + (BxDF * L_i * cos_theta) / pdf_val
 	// This is divided by the Russian roulette probability
-	return emitted + bxdf * radiance(exitant, background, world, lights, depth + 1, rgen) * cos_theta / (pdf_val * p);
+	double val = emitted + bxdf * radiance(exitant, background, world, lights, depth + 1, rgen) * cos_theta / (pdf_val * p);
+
+	return val;
 }
 
 Scene cornell_box()
@@ -125,25 +133,63 @@ Scene cornell_box()
 	auto red   = OrenNayar::make( SolidColor::make( PeakSpectrum(700, 0.9, 60)), 0.2);
 	auto white = OrenNayar::make( SolidColor::make( FlatSpectrum(0.9) ), 0.2);
 	auto green = OrenNayar::make( SolidColor::make( PeakSpectrum(560, 0.9, 60) ), 0.2);
-	auto plastic = std::make_shared<TorranceSparrow>( SolidColor::make( FlatSpectrum(0.9) ), 0.2);
+
+	std::array<double, 73> gold_n_arr = {1.46220588, 1.46220126, 1.46534591, 1.46849057, 1.46836478,
+       1.46522013, 1.46207547, 1.45901163, 1.45610465, 1.45319767,
+       1.4502907 , 1.43455882, 1.41740196, 1.4002451 , 1.38308824,
+       1.366     , 1.34892683, 1.33185366, 1.31478049, 1.27032653,
+       1.21522449, 1.16012245, 1.10502041, 1.04991837, 0.97112   ,
+       0.88712   , 0.80312   , 0.71912   , 0.63512   , 0.59187726,
+       0.55758123, 0.5232852 , 0.48898917, 0.45469314, 0.42414925,
+       0.40325373, 0.38235821, 0.36146269, 0.34056716, 0.31967164,
+       0.29877612, 0.28331412, 0.27178674, 0.26025937, 0.24873199,
+       0.23720461, 0.22567723, 0.21414986, 0.2047541 , 0.19655738,
+       0.18836066, 0.18016393, 0.17196721, 0.16377049, 0.15557377,
+       0.14737705, 0.13988889, 0.13877778, 0.13766667, 0.13655556,
+       0.13544444, 0.13433333, 0.13322222, 0.13211111, 0.131     ,
+       0.13009709, 0.13106796, 0.13203883, 0.13300971, 0.13398058,
+       0.13495146, 0.13592233, 0.1368932};
+
+	std::array<double, 73> gold_k_arr = {1.92880882, 1.93718239, 1.94315723, 1.94913208, 1.95298113,
+       1.95486792, 1.95675472, 1.95701163, 1.95410465, 1.95119767,
+       1.9482907 , 1.9405    , 1.93216667, 1.92383333, 1.9155    ,
+       1.901     , 1.88514634, 1.86929268, 1.85343902, 1.84664898,
+       1.84338367, 1.84011837, 1.83685306, 1.83358776, 1.873672  ,
+       1.923272  , 1.972872  , 2.022472  , 2.072072  , 2.1363574 ,
+       2.20386643, 2.27137545, 2.33888448, 2.4063935 , 2.47205075,
+       2.53294627, 2.59384179, 2.65473731, 2.71563284, 2.77652836,
+       2.83742388, 2.89718156, 2.95611527, 3.01504899, 3.07398271,
+       3.13291643, 3.19185014, 3.25078386, 3.30385012, 3.35361593,
+       3.40338173, 3.45314754, 3.50291335, 3.55267916, 3.60244496,
+       3.65221077, 3.70151111, 3.74662222, 3.79173333, 3.83684444,
+       3.88195556, 3.92706667, 3.97217778, 4.01728889, 4.0624    ,
+       4.10726214, 4.1498835 , 4.19250485, 4.23512621, 4.27774757,
+       4.32036893, 4.36299029, 4.40561165
+	};
+
+	auto gold_n = std::make_shared<Spectrum>(gold_n_arr);
+	auto gold_k = std::make_shared<Spectrum>(gold_k_arr);
+
+	auto plastic = std::make_shared<TorranceSparrow>( SolidColor::make( FlatSpectrum(0.9) ), 0.8, gold_n, gold_k);
 
 	double A = 1.0;
 	std::array<double, 3> B = {1.03961212, 0.231792344, 1.01046945};
 	std::array<double, 3> C = {6.00069867e-3, 2.00179144e-2, 1.03560653e2};
+	// auto frosted_glass = std::make_shared<MicrofacetTransmission>(SolidColor::make( FlatSpectrum(1.0) ), std::make_shared<Sellmeier>(A, B, C), 0.01);
 	auto glass = Dielectric::make( SolidColor::make( FlatSpectrum(1.0) ), std::make_shared<Sellmeier>(A, B, C) );
 
-	auto light = DiffuseLight::make( SolidColor::make( PeakSpectrum(450, 1.0, 150) ) );
+	auto light = DiffuseLight::make( SolidColor::make( PeakSpectrum(450, 2.0, 150) ) );
 
 	world.add( FlipNormals::applyTo( AARect::make('x', 0,   555, 0,   555, 555, green) ) );
 	world.add( 			 AARect::make('x', 0,   555, 0,   555, 0,   red  )   );
-	world.add( FlipNormals::applyTo( AARect::make('y', 151, 414, 151, 414, 554, light) ) );
+	world.add( FlipNormals::applyTo( AARect::make('y', 222, 333, 222, 333, 554, light) ) );
 	world.add( FlipNormals::applyTo( AARect::make('y', 0,   555, 0,   555, 555, white) ) );
 	world.add( 			 AARect::make('y', 0,   555, 0,   555, 0,   white)   );
 	world.add( FlipNormals::applyTo( AARect::make('z', 0,   555, 0,   555, 555, white) ) );
 
-	world.add( Sphere::make( Point3(280, 380, 180), 85, glass ) );
+	world.add( Sphere::make( Point3(178, 260, 278), 85, plastic) );
 
-	std::shared_ptr<Surface> box1 = Box::make(Point3(0, 0, 0), Point3(165, 330, 165), plastic);
+	std::shared_ptr<Surface> box1 = Box::make(Point3(0, 0, 0), Point3(165, 330, 165), white);
 	box1 = Rotate::applyTo(    box1, 15                );
 	box1 = Translate::applyTo( box1, Vec3(265, 0, 295) );
 	world.add(box1);
@@ -179,12 +225,11 @@ int main()
 	const auto aspect_ratio = 1.0; 
 	const int image_width = 512;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
-	const int spp = 50;
+	const int spp = 100;
 
 	Scene world = cornell_box();
 	std::shared_ptr<Scene> lights = std::make_shared<Scene>();
-	lights->add(std::make_shared<AARect>('y', 213, 343, 227, 332, 554, std::shared_ptr<Material>()));
-	lights->add(Sphere::make( Point3(280, 380, 180), 85, std::shared_ptr<Material>() ));
+	lights->add(AARect::make('y', 222, 333, 222, 333, 554, std::shared_ptr<Material>()));
 
 	Point3 lookfrom(278, 278, -800);
 	Point3 lookat(278, 278, 0);

@@ -11,7 +11,8 @@ double CosinePDF::value(const Vec3& wi, const Vec3& wo, std::mt19937& rgen) cons
 	return (cosine <= 0) ? 0 : cosine / M_PI;
 }
 
-Vec3 CosinePDF::generate(std::mt19937& rgen, const Vec3& wo) const
+Vec3 CosinePDF::generate(std::mt19937& rgen, const Vec3& wi, const Vec3& n) const
 {
-	return uvw.local(random_cos_weighted_hemisphere(rgen));
+	Vec3 wo = normalize(uvw.local(random_cos_weighted_hemisphere(rgen)));
+	return wo;
 }

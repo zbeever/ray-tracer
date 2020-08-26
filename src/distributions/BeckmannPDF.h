@@ -17,34 +17,35 @@ public:
 
 	virtual double value(const Vec3& wi, const Vec3& wo, std::mt19937& rgen) const
 	{
-		Vec3 incident = wi;
-		if (dot(wi, uvw.w()) < 0.0) incident *= -1.0;
+		Vec3 wi_aligned = (dot(wi, uvw.w()) > 0.0) ? wi : -wi;
+		Vec3 wh = normalize(normalize(wi_aligned) + normalize(wo));
 
-		Vec3 exitant = wo;
-		if (dot(wo, uvw.w()) < 0.0) exitant *= -1.0;
-
-		Vec3 wh = normalize(normalize(incident) + normalize(exitant));
-
-		double cos_theta = dot(wh, uvw.w());
-
-		if (cos_theta < 0.0) {
+		if (dot(wh, uvw.w()) < 0.0) {
 			return 0.0;
 		}
 
-		double tan2_theta = (1 - pow(cos_theta, 2.0)) / pow(cos_theta, 2.0);
+		if ((dot(wh, uvw.w()) < 1e-6) || (std::abs(dot(wi_aligned, uvw.w())) < 1e-6)) {
+			return 0.0;
+		}
+
+		if ((std::abs(wh.x()) < 1e-6) && (std::abs(wh.y()) < 1e-6) && (std::abs(wh.z()) < 1e-6)) {
+			return 0.0;
+		}
+
+		double cos_theta = std::abs(dot(wh, uvw.w()));
+		double tan2_theta = (1.0 - pow(cos_theta, 2.0)) / pow(cos_theta, 2.0);
 
 		double coef = 1.0 / (M_PI * pow(alpha, 2.0) * pow(cos_theta, 4.0));
 		double D = coef * exp(-tan2_theta / pow(alpha, 2));
 
-		return D;
+		return D * cos_theta;
 	}
 
-	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wi) const
+	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wi, const Vec3& n) const
 	{
-		Vec3 wh = uvw.local(random_in_beckmann(rgen, alpha));
-		Vec3 incident = wi;
-		if (dot(wi, uvw.w()) < 0.0) incident *= -1.0;
-		Vec3 wo = 2.0 * wh - normalize(incident);
+		Vec3 wh = normalize(uvw.local(random_in_beckmann(rgen, alpha)));
+		Vec3 wi_aligned = (dot(wi, uvw.w()) < 0.0) ? wi : -wi; 
+		Vec3 wo = normalize(wi_aligned - 2.0 * dot(wi_aligned, wh) * wh);
 		return wo;
 	}
 };

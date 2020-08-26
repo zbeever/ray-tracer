@@ -16,6 +16,10 @@ public:
 
 	virtual double bxdf(const Ray& r_in, Ray& r_out, const Record& rec, const ScatterRecord& srec) const
 	{
+		// NEED TO CHECK THIS
+		if (dot(r_in.direction(), r_out.direction()) > 0.0) {
+			return 0.0;
+		}
 		return albedo->value(r_in.bin(), rec.u, rec.v, rec.p) / M_PI;
 	}
 

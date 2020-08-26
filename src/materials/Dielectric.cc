@@ -3,13 +3,6 @@
 Dielectric::Dielectric(std::shared_ptr<Texture> albedo_, std::shared_ptr<Spectrum> ri_): albedo(albedo_), ri(ri_)
 { }
 
-double schlick(const double cosine, const double ri)
-{
-	auto r0 = (1 - ri) / (1 + ri);
-	r0 = r0 * r0;
-	return r0 + (1 - r0) * pow(1 - cosine, 5);
-}
-
 bool Dielectric::scatter(const Ray& r_in, const Record& rec, ScatterRecord& srec, std::mt19937& rgen) const
 {
 	double actual_ri = ri->get(r_in.bin());

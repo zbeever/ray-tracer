@@ -11,11 +11,11 @@ double MixturePDF::value(const Vec3& wi, const Vec3& wo, std::mt19937& rgen) con
 	return 0.5 * p[0]->value(wi, wo, rgen) + 0.5 * p[1]->value(wi, wo, rgen);
 }
 
-Vec3 MixturePDF::generate(std::mt19937& rgen, const Vec3& wo) const
+Vec3 MixturePDF::generate(std::mt19937& rgen, const Vec3& wo, const Vec3& n) const
 {
 	if (random_double(rgen) < 0.5) {
-		return p[0]->generate(rgen, wo);
+		return p[0]->generate(rgen, wo, n);
 	} else {
-		return p[1]->generate(rgen, wo);
+		return p[1]->generate(rgen, wo, n);
 	}
 }

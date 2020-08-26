@@ -19,9 +19,13 @@ public:
 		return 1 / (2 * PI);
 	}
 
-	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wo) const
+	virtual Vec3 generate(std::mt19937& rgen, const Vec3& wo, const Vec3& n) const
 	{
+		// std::cout << dot(uvw.w(), n) << std::endl;
 		Vec3 possible = uvw.local(random_in_unit_sphere(rgen));
-		return dot(possible, uvw.w()) > 0 ? possible : -possible;
+		if (dot(possible, uvw.w()) < 0.0) {
+			possible *= -1.0;
+		}
+		return possible;
 	}
 };
