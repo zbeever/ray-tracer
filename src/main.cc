@@ -32,7 +32,7 @@
 #include "materials/Dielectric.h"
 #include "materials/DiffuseLight.h"
 // #include "materials/Isotropic.h"
-#include "materials/TorranceSparrow.h"
+#include "materials/MicrofacetReflection.h"
 #include "materials/Lambertian.h"
 #include "materials/OrenNayar.h"
 // #include "materials/Metal.h"
@@ -62,6 +62,7 @@
 
 double radiance(const Ray& incident, const Spectrum& background, const Scene& world, std::shared_ptr<Surface> lights, const int depth, std::mt19937& rgen)
 {
+	// std::cout << "MADE IT" << std::endl;
 	Record rec;
 
 	// If we hit nothing, return the background color.
@@ -84,7 +85,11 @@ double radiance(const Ray& incident, const Spectrum& background, const Scene& wo
 
 	if (srec.is_specular) {
 		// If the object we hit is specular, set the exitant ray and BxDF (a color divided by |wo . n| -- see notes)
+		// std::cout << "Getting BXDF...\n" << std::flush;
 		bxdf = rec.mat_ptr->bxdf(incident, srec.specular_ray, rec, srec);
+
+
+		// std::cout << "Setting exitant ray...\n" << std::flush;
 		exitant = srec.specular_ray;
 	} else {
 		// If the object we hit is matte, importance sample the material and lights using a mixed PDF
@@ -95,7 +100,7 @@ double radiance(const Ray& incident, const Spectrum& background, const Scene& wo
 
 		// Get a ray and its associated PDF value from the above distribution
 		exitant = Ray(rec.p, pdf.generate(rgen, incident.direction(), rec.normal), incident.time(), incident.bin());
-		pdf_val = pdf.value(incident.direction(), exitant.direction(), rgen);
+		pdf_val = pdf.value(incident, exitant, rgen);
 
 		// Set the BxDF value
 		bxdf = rec.mat_ptr->bxdf(incident, exitant, rec, srec);
@@ -103,27 +108,46 @@ double radiance(const Ray& incident, const Spectrum& background, const Scene& wo
 
 	// If the path depth is greater than 5, perform Russian roulette based of the BxDF value
 	if (depth > 5) {
-		p = bxdf;
+		// Keep an eye on this! If this is consistently too high we get a segmentation fault.
+		if (srec.is_specular) {
+			p = 0.75;
+		} else {
+			p = bxdf;
+		}
 		if (random_double(rgen) < 1 - p) {
 			return 0.0;
 		}
 	}
-
+	
 
 	// The weakening factor in the rendering equation
+	// if (srec.is_specular) std::cout << "Getting the Lambertian term...\n" << std::flush;
 	Vec3 wo = normalize(exitant.direction());
 	Vec3 n = normalize(rec.normal);
 	double cos_theta = std::abs(dot(wo, n));
 
-	if ((pdf_val < 1e-6) || (cos_theta < 1e-6) || (bxdf < 1e-6)) {
+	if ((pdf_val < 1e-6) || (bxdf < 1e-6)) {
 		return 0.0;
 	}
 
+	/*
+	if (srec.is_specular) std::cout << "Recursing...\n" << std::flush;
+	if (srec.is_specular && srec.reflected) {
+		std::cout << "Recursion record:" << 
+			     "\nemitted: " << emitted <<
+			     "\nbxdf: " << bxdf <<
+			     "\nexitant (ori): " << exitant.origin() <<
+			     "\nexitant (dir): " << exitant.direction() <<
+			     "\ndepth + 1: " << depth + 1 <<
+			     "\ncos_theta: " << cos_theta <<
+			     "\npdf_val: " << pdf_val <<
+			     "\np: " << p <<
+			     "\n" << std::flush;
+	}
+	*/
 	// A random sample of the rendering equation: L_o = L_e + (BxDF * L_i * cos_theta) / pdf_val
 	// This is divided by the Russian roulette probability
-	double val = emitted + bxdf * radiance(exitant, background, world, lights, depth + 1, rgen) * cos_theta / (pdf_val * p);
-
-	return val;
+	return emitted + bxdf * radiance(exitant, background, world, lights, depth + 1, rgen) * cos_theta / (pdf_val * p);
 }
 
 Scene cornell_box()
@@ -132,6 +156,7 @@ Scene cornell_box()
 
 	auto red   = OrenNayar::make( SolidColor::make( PeakSpectrum(700, 0.9, 60)), 0.2);
 	auto white = OrenNayar::make( SolidColor::make( FlatSpectrum(0.9) ), 0.2);
+	auto other = OrenNayar::make( SolidColor::make( PeakSpectrum(400, 0.9, 180) ), 0.2);
 	auto green = OrenNayar::make( SolidColor::make( PeakSpectrum(560, 0.9, 60) ), 0.2);
 
 	std::array<double, 73> gold_n_arr = {1.46220588, 1.46220126, 1.46534591, 1.46849057, 1.46836478,
@@ -170,33 +195,33 @@ Scene cornell_box()
 	auto gold_n = std::make_shared<Spectrum>(gold_n_arr);
 	auto gold_k = std::make_shared<Spectrum>(gold_k_arr);
 
-	auto plastic = std::make_shared<TorranceSparrow>( SolidColor::make( FlatSpectrum(0.9) ), 0.8, gold_n, gold_k);
+	auto plastic = std::make_shared<MicrofacetReflection>(gold_n, gold_k, 0.2);
 
 	double A = 1.0;
 	std::array<double, 3> B = {1.03961212, 0.231792344, 1.01046945};
 	std::array<double, 3> C = {6.00069867e-3, 2.00179144e-2, 1.03560653e2};
-	// auto frosted_glass = std::make_shared<MicrofacetTransmission>(SolidColor::make( FlatSpectrum(1.0) ), std::make_shared<Sellmeier>(A, B, C), 0.01);
 	auto glass = Dielectric::make( SolidColor::make( FlatSpectrum(1.0) ), std::make_shared<Sellmeier>(A, B, C) );
+	auto fglass = std::make_shared<MicrofacetTransmission>(SolidColor::make( FlatSpectrum(1.0) ), 0.05, std::make_shared<Sellmeier>(A, B, C));
 
-	auto light = DiffuseLight::make( SolidColor::make( PeakSpectrum(450, 2.0, 150) ) );
+	auto light = DiffuseLight::make( SolidColor::make( FlatSpectrum(1.0)) );
 
-	world.add( FlipNormals::applyTo( AARect::make('x', 0,   555, 0,   555, 555, green) ) );
-	world.add( 			 AARect::make('x', 0,   555, 0,   555, 0,   red  )   );
-	world.add( FlipNormals::applyTo( AARect::make('y', 222, 333, 222, 333, 554, light) ) );
-	world.add( FlipNormals::applyTo( AARect::make('y', 0,   555, 0,   555, 555, white) ) );
-	world.add( 			 AARect::make('y', 0,   555, 0,   555, 0,   white)   );
-	world.add( FlipNormals::applyTo( AARect::make('z', 0,   555, 0,   555, 555, white) ) );
+	world.add( FlipNormals::applyTo( AARect::make('x', 0,   500, -500,   1250, 0,   green) ) );
+	world.add( 			 AARect::make('x', 0,   500, -500,   1250, 500, red  )   );
+	world.add( FlipNormals::applyTo( AARect::make('y', 170, 330,  -30,   130,  499, light) ) );
+	world.add( FlipNormals::applyTo( AARect::make('y', 0,   500, -500,   1250, 0,   white) ) );
+	world.add( 			 AARect::make('y', 0,   500, -500,   1250, 500, white)   );
+	world.add( FlipNormals::applyTo( AARect::make('z', 0,   500,  0,     500, -500, white) ) );
 
-	world.add( Sphere::make( Point3(178, 260, 278), 85, plastic) );
+	world.add( Sphere::make( Point3(200, 85, 200), 85, fglass) );
 
-	std::shared_ptr<Surface> box1 = Box::make(Point3(0, 0, 0), Point3(165, 330, 165), white);
+	std::shared_ptr<Surface> box1 = Box::make(Point3(0, 0, 0), Point3(150, 300, 150), white);
 	box1 = Rotate::applyTo(    box1, 15                );
-	box1 = Translate::applyTo( box1, Vec3(265, 0, 295) );
+	box1 = Translate::applyTo( box1, Vec3(50, 0, -300) );
 	world.add(box1);
 
-	std::shared_ptr<Surface> box2 = Box::make(Point3(0, 0, 0), Point3(165, 165, 165), white);
+	std::shared_ptr<Surface> box2 = Box::make(Point3(0, 0, 0), Point3(150, 150, 150), plastic);
 	box2 = Rotate::applyTo(    box2, -18              );
-	box2 = Translate::applyTo( box2, Vec3(130, 0, 65) );
+	box2 = Translate::applyTo( box2, Vec3(300, 0, -150) );
 	world.add(box2);
 
 	return world;
@@ -220,23 +245,23 @@ Color toRGB(const Color& pixel_color)
 
 int main()
 {
-	const Spectrum background = Spectrum();
+	const Spectrum background = FlatSpectrum(0.0);
 
 	const auto aspect_ratio = 1.0; 
 	const int image_width = 512;
 	const int image_height = static_cast<int>(image_width / aspect_ratio);
-	const int spp = 100;
+	const int spp = 20;
 
 	Scene world = cornell_box();
 	std::shared_ptr<Scene> lights = std::make_shared<Scene>();
-	lights->add(AARect::make('y', 222, 333, 222, 333, 554, std::shared_ptr<Material>()));
+	lights->add(AARect::make('y', 170, 330,  -30,   130,  499, std::shared_ptr<Material>()));
 
-	Point3 lookfrom(278, 278, -800);
-	Point3 lookat(278, 278, 0);
+	Point3 lookfrom(250, 250, 1250);
+	Point3 lookat(250, 250, 0);
 	Vec3 vup(0, 1, 0);
-	auto dist_to_focus = 10;
-	auto aperture = 0.0;
-	Camera cam(lookfrom, lookat, vup, 37, aspect_ratio, aperture, dist_to_focus, 0, 1);
+	auto dist_to_focus = 1250 - 200 - 45;
+	auto aperture = 20.0;
+	Camera cam(lookfrom, lookat, vup, 34, aspect_ratio, aperture, dist_to_focus, 0, 1);
 
 	// Open a file, make sure it's loaded, and create the header
 	std::ofstream file;

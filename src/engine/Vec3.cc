@@ -41,12 +41,12 @@ Vec3 Vec3::operator-() const
 	return Vec3(-e[0], -e[1], -e[2]);
 }
 
-double Vec3::operator[](const int i) const
+double Vec3::operator[](int i) const
 {
 	return e[i];
 }
 
-double& Vec3::operator[](const int i)
+double& Vec3::operator[](int i)
 {
 	return e[i];
 }
@@ -59,7 +59,7 @@ Vec3& Vec3::operator+=(const Vec3& v)
 	return *this;
 }
 
-Vec3& Vec3::operator*=(const double t)
+Vec3& Vec3::operator*=(double t)
 {
 	e[0] *= t;
 	e[1] *= t;
@@ -67,7 +67,7 @@ Vec3& Vec3::operator*=(const double t)
 	return *this;
 }
 
-Vec3& Vec3::operator/=(const double t)
+Vec3& Vec3::operator/=(double t)
 {
 	*this *= 1. / t;
 	return *this;
@@ -129,7 +129,10 @@ Vec3 random_in_beckmann(std::mt19937& rgen, const double m)
 	double u = random_double(rgen);
 	double v = random_double(rgen);
 
-	double theta = atan(sqrt(-pow(m, 2.0) * log(1.0 - u)));
+	double theta = M_PI / 2.;
+	if (u < 1.) {
+		theta = atan(sqrt(-pow(m, 2.0) * log(1.0 - u)));
+	}
 	double phi = 2 * M_PI * v;
 
 	double sinTheta = sin(theta);
@@ -140,15 +143,3 @@ Vec3 random_in_beckmann(std::mt19937& rgen, const double m)
 	return Vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
 }
 
-Vec3 reflect(const Vec3& v, const Vec3& n)
-{
-	return v - 2 * dot(v, n) * n;
-}
-
-Vec3 refract(const Vec3& uv, const Vec3& n, const double etai_over_etat)
-{
-	auto cos_theta = dot(-uv, n);
-	Vec3 r_out_parallel = etai_over_etat * (uv + cos_theta * n);
-	Vec3 r_out_perp = -sqrt(1.0 - r_out_parallel.length_squared()) * n;
-	return r_out_parallel + r_out_perp;
-}

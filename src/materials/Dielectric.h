@@ -2,6 +2,7 @@
 
 #include "../engine/Material.h"
 #include "../engine/Utils.h"
+#include "../engine/Fresnel.h"
 
 class Dielectric: public Material
 {
@@ -22,8 +23,9 @@ public:
 		double etai_over_etat = (rec.front_face) ? (1.0 / actual_ri) : actual_ri;
 		double F = schlick(cos_theta, etai_over_etat);
 		
+		// This would be weighted by a Fresnel term, but we are already sampling rays according to F and (1 - F)
 		double weight = 1.0 / std::abs(dot(normalize(r_out.direction()), normalize(rec.normal)));
-		return (dot(r_in.direction(), r_out.direction()) < 0.0) ? (F * weight) : (etai_over_etat * (1.0 - F) * weight);
+		return (dot(r_out.direction(), rec.normal) > 0.0) ? (weight) : (etai_over_etat * weight);
 	}
 	static std::shared_ptr<Dielectric> make(std::shared_ptr<Texture> albedo_, std::shared_ptr<Spectrum> ri_);
 };
